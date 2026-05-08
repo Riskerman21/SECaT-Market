@@ -11,10 +11,15 @@ with sync_playwright() as p:
 
     page.click("text=C")
     page.click("text=CSSE")
+    page.click("text=CSSE1001")
 
 
 
 
     content = page.content()
-    print(content)
+
+
+    data = (content[content.find("courseSECATData"): content.find("var title = '")])
+    with open("out_csse1001.txt", "w") as f:
+        f.write(data)
     browser.close()
