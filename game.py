@@ -86,8 +86,6 @@ PSYCH_COURSES = [
     {"code": "PSYC4221", "name": "Work and Research in Applied Psychology"},
     {"code": "PSYC1020", "name": "Introduction to Psychology: Minds, Brains and Behaviour"},
     {"code": "PSYC1040", "name": "Psychological Research Methodology I"},
-    {"code": "PSYC7191", "name": "Clinical Psychopathology"},
-    {"code": "PSYC7401", "name": "Introduction to Psychology: Understanding How People Think, Feel and Act"},
     {"code": "PSYC2010", "name": "Psychological Research Methodology II"},
     {"code": "PSYC3032", "name": "Topics in Social Psychology"},
     {"code": "PSYC3082", "name": "Psychotherapies and Counselling"},

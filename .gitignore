@@ -1,2 +1,8 @@
-__pycache__
+__pycache__/
 cache
+*.pyc
+.venv/
+.env
+cache_build.log
+out_*.txt
+.DS_Store

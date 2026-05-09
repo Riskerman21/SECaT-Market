@@ -274,13 +274,36 @@
         .question-clear {
             position: relative;
             z-index: 1;
-            margin-top: 12px;
-            font-size: 17px;
-            line-height: 1.45;
+            margin-top: 14px;
             color: #e5e7eb;
         }
 
-        .question-clear strong {
+        .question-kicker {
+            color: var(--yellow);
+            font-size: 13px;
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            margin-bottom: 6px;
+        }
+
+        .question-main {
+            font-size: 28px;
+            font-weight: 950;
+            line-height: 1.12;
+            color: white;
+            letter-spacing: -0.04em;
+            margin-bottom: 8px;
+            text-shadow: 0 0 18px rgba(250, 204, 21, 0.18);
+        }
+
+        .question-sub {
+            font-size: 17px;
+            line-height: 1.4;
+            color: #dbeafe;
+        }
+
+        .question-sub strong {
             color: var(--yellow);
         }
 
@@ -547,14 +570,15 @@
 
         .offering {
             display: inline-block;
-            font-size: 16px;
-            color: #e5e7eb;
-            margin-bottom: 28px;
-            background: rgba(0, 0, 0, 0.18);
-            border: 1px solid rgba(255, 255, 255, 0.18);
+            font-size: 19px;
+            color: #f8fafc;
+            margin-bottom: 30px;
+            background: rgba(0, 0, 0, 0.22);
+            border: 1px solid rgba(255, 255, 255, 0.22);
             border-radius: 999px;
-            padding: 9px 14px;
-            font-weight: 800;
+            padding: 11px 17px;
+            font-weight: 900;
+            letter-spacing: -0.01em;
         }
 
         .answer-label {
@@ -784,7 +808,11 @@
                 font-size: 64px;
             }
 
-            .question-clear {
+            .question-main {
+                font-size: 23px;
+            }
+
+            .question-sub {
                 font-size: 16px;
             }
 
@@ -1284,9 +1312,16 @@
         }
 
         function renderRound(data) {
-            document.getElementById("questionText").innerHTML =
-                `Which course offering had a <strong>higher percentage</strong> of students who selected ` +
-                `<strong>${data.answer_option}</strong> for <strong>${data.question_name}</strong>?`;
+            const cleanAnswer = data.answer_option.replace(/^\d+\s*/, "");
+
+            document.getElementById("questionText").innerHTML = `
+                <div class="question-kicker">Comparing SECaT question</div>
+                <div class="question-main">${data.question_name}</div>
+                <div class="question-sub">
+                    Which course offering had a <strong>higher percentage</strong> of students selecting
+                    <strong>${cleanAnswer}</strong>?
+                </div>
+            `;
 
             document.getElementById("leftCode").innerText = data.left.course;
             document.getElementById("leftName").innerText = data.left.name;
@@ -1295,14 +1330,14 @@
             document.getElementById("leftPercent").innerText =
                 data.left.percent + "%";
             document.getElementById("leftAnswer").innerText =
-                data.answer_option;
+                cleanAnswer;
 
             document.getElementById("rightCode").innerText = data.right.course;
             document.getElementById("rightName").innerText = data.right.name;
             document.getElementById("rightOffering").innerText =
                 data.right.label.replace(data.right.course + ": ", "");
             document.getElementById("rightAnswer").innerText =
-                data.answer_option;
+                cleanAnswer;
         }
 
         function makeGuess(guess) {
