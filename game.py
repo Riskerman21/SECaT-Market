@@ -92,7 +92,6 @@ PSYCH_COURSES = [
 
 INFS_COURSES = [
     {"code": "INFS1200", "name": "Introduction to Information Systems"},
-    {"code": "INFS2021E", "name": "Information Technology"},
     {"code": "INFS2200", "name": "Relational Database Systems"},
     {"code": "INFS3200", "name": "Advanced Database Systems"},
     {"code": "INFS3202", "name": "Web Information Systems"},
