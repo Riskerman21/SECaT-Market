@@ -5,7 +5,7 @@ import request_secat_data
 import secat_cache
 
 
-COURSES = [
+COMPUTER_SCIENCE_COURSES = [
     # CSSE courses
     {"code": "CSSE2310", "name": "Computer Systems Principles and Programming"},
     {"code": "CSSE4010", "name": "Digital System Design"},
@@ -38,12 +38,152 @@ COURSES = [
     {"code": "DECO3801", "name": "Design Computing Studio 3 - Build"},
     {"code": "DECO6500", "name": "Advanced Human-Computer Interaction"},
 
-    {"code": "COMS3200", "name":"Computer Networks I"},
-    {"code": "COMS6200", "name":"Computer Networks II"}
+    # COMS courses
+    {"code": "COMS3200", "name": "Computer Networks I"},
+    {"code": "COMS6200", "name": "Computer Networks II"},
 ]
 
 
+ENGG_COURSES = [
+    {"code": "ENGG1300", "name": "Introduction to Electrical Systems"},
+    {"code": "ENGG1001", "name": "Programming for Engineers"},
+    {"code": "ENGG1100", "name": "Professional Engineering"},
+    {"code": "ENGG1500", "name": "Thermodynamics: Energy and the Environment"},
+    {"code": "ENGG1700", "name": "Statics and Materials"},
+]
+
+
+ELEC_COURSES = [
+    {"code": "ELEC2300", "name": "Fundamentals of Electromagnetism and Electromechanics"},
+    {"code": "ELEC4410", "name": "Advanced Electronic and Power Electronics Design"},
+    {"code": "ELEC7310", "name": "Electricity Market Operation and Security"},
+    {"code": "ELEC2400", "name": "Electronic Devices and Circuits"},
+    {"code": "ELEC3100", "name": "Fundamentals of Electromagnetic Fields and Waves"},
+    {"code": "ELEC3310", "name": "Electrical Energy Conversion and Utilisation"},
+    {"code": "ELEC4302", "name": "Power System Protection"},
+    {"code": "ELEC2004", "name": "Circuits, Signals and Systems"},
+]
+
+
+MECH_COURSES = [
+    {"code": "MECH2410", "name": "Fundamentals of Fluid Mechanics"},
+    {"code": "MECH2210", "name": "Intermediate Mechanical and Space Dynamics"},
+    {"code": "MECH3780", "name": "Computational Mechanics"},
+    {"code": "MECH3100", "name": "Mechanical Systems Design"},
+    {"code": "MECH3410", "name": "Fluid Mechanics"},
+    {"code": "MECH2100", "name": "Machine Element Design"},
+    {"code": "MECH2300", "name": "Structures and Materials"},
+    {"code": "MECH2310", "name": "Science and Engineering of Metals"},
+    {"code": "MECH2700", "name": "Computational Engineering and Data Analysis"},
+    {"code": "MECH3301", "name": "Materials Selection"},
+]
+
+
+PSYCH_COURSES = [
+    {"code": "PSYC1030", "name": "Introduction to Psychology: Developmental, Social & Clinical Psychology"},
+    {"code": "PSYC2381", "name": "Positive Psychology"},
+    {"code": "PSYC3020", "name": "Measurement in Psychology"},
+    {"code": "PSYC4221", "name": "Work and Research in Applied Psychology"},
+    {"code": "PSYC1020", "name": "Introduction to Psychology: Minds, Brains and Behaviour"},
+    {"code": "PSYC1040", "name": "Psychological Research Methodology I"},
+    {"code": "PSYC7191", "name": "Clinical Psychopathology"},
+    {"code": "PSYC7401", "name": "Introduction to Psychology: Understanding How People Think, Feel and Act"},
+    {"code": "PSYC2010", "name": "Psychological Research Methodology II"},
+    {"code": "PSYC3032", "name": "Topics in Social Psychology"},
+    {"code": "PSYC3082", "name": "Psychotherapies and Counselling"},
+]
+
+
+COURSE_GROUPS = {
+    "computer_science": {
+        "label": "Computer Science / Software / Design",
+        "courses": COMPUTER_SCIENCE_COURSES,
+    },
+    "engineering_core": {
+        "label": "Engineering Core",
+        "courses": ENGG_COURSES,
+    },
+    "electrical": {
+        "label": "Electrical Engineering",
+        "courses": ELEC_COURSES,
+    },
+    "mechanical": {
+        "label": "Mechanical Engineering",
+        "courses": MECH_COURSES,
+    },
+    "psychology": {
+        "label": "Psychology",
+        "courses": PSYCH_COURSES,
+    },
+}
+
+
+COURSES = (
+    COMPUTER_SCIENCE_COURSES
+    + ENGG_COURSES
+    + ELEC_COURSES
+    + MECH_COURSES
+    + PSYCH_COURSES
+)
+
+
 FUN_ANSWER_OPTIONS = [1]
+
+
+def get_courses_for_groups(group_keys):
+    """
+    Converts selected group keys from the frontend into one combined course list.
+
+    If no valid groups are provided, it defaults to all courses.
+    """
+
+    if not group_keys:
+        return COURSES
+
+    selected_courses = []
+
+    for group_key in group_keys:
+        group = COURSE_GROUPS.get(group_key)
+
+        if group is None:
+            continue
+
+        selected_courses.extend(group["courses"])
+
+    # Remove duplicate course codes while preserving order.
+    unique_courses = []
+    seen_codes = set()
+
+    for course in selected_courses:
+        code = course["code"]
+
+        if code in seen_codes:
+            continue
+
+        seen_codes.add(code)
+        unique_courses.append(course)
+
+    if len(unique_courses) == 0:
+        return COURSES
+
+    return unique_courses
+
+
+def get_course_group_list():
+    """
+    Returns course groups for the frontend start screen.
+    """
+
+    groups = []
+
+    for key, group in COURSE_GROUPS.items():
+        groups.append({
+            "key": key,
+            "label": group["label"],
+            "count": len(group["courses"]),
+        })
+
+    return groups
 
 
 def course_code(course):
@@ -127,11 +267,6 @@ def offering_distance(offering_a, offering_b):
 
 
 def get_available_offerings_for_course(course_code_value: str, name: str = ""):
-    """
-    Gets available offerings for a course.
-    Uses cache first.
-    """
-
     course_code_value = course_code_value.upper()
     cache_key = f"offerings_{course_code_value}"
 
@@ -217,11 +352,6 @@ def get_closest_course_offering(courses, target_offering):
 
 
 def get_answer_from_offering(offering, question_num: int, answer_num: int):
-    """
-    Gets one answer row from one offering.
-    Uses cached full SECaT data first.
-    """
-
     cache_key = (
         f"secat_data_{offering['course']}"
         f"_sem{offering['sem']}"
@@ -271,24 +401,27 @@ def get_answer_from_offering(offering, question_num: int, answer_num: int):
     return matching_results[0]
 
 
-def prepare_round(max_attempts: int = 20):
+def prepare_round(course_groups=None, max_attempts: int = 20):
     """
     Creates one complete website round.
-    Returns a dictionary suitable for JSON.
+    The course_groups parameter lets the frontend choose which course lists to use.
     """
+
+    selected_courses = get_courses_for_groups(course_groups)
 
     for attempt in range(1, max_attempts + 1):
         print(f"Preparing website round attempt {attempt}/{max_attempts}...")
+        print(f"Using {len(selected_courses)} selected course(s).")
 
         question_num = random.randint(1, 8)
         answer_num = random.choice(FUN_ANSWER_OPTIONS)
 
-        offering_a = get_random_course_offering(COURSES)
+        offering_a = get_random_course_offering(selected_courses)
 
         if offering_a is None:
             continue
 
-        offering_b = get_closest_course_offering(COURSES, offering_a)
+        offering_b = get_closest_course_offering(selected_courses, offering_a)
 
         if offering_b is None:
             continue
@@ -324,6 +457,7 @@ def prepare_round(max_attempts: int = 20):
         return {
             "question_name": data_a["QUESTION_NAME"],
             "answer_option": data_a["ANSWER"],
+            "course_group_count": len(selected_courses),
 
             "left": {
                 "course": offering_a["course"],

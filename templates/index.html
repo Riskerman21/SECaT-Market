@@ -42,7 +42,119 @@
 
         .game {
             min-height: 100vh;
-            display: flex;
+        }
+
+        .start-screen {
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+        }
+
+        .start-card {
+            width: min(920px, 100%);
+            background:
+                linear-gradient(135deg, rgba(236, 72, 153, 0.18), rgba(56, 189, 248, 0.12)),
+                rgba(15, 23, 42, 0.88);
+            border: 1px solid rgba(148, 163, 184, 0.24);
+            border-radius: 32px;
+            padding: 34px;
+            box-shadow: 0 30px 90px rgba(0, 0, 0, 0.35);
+        }
+
+        .brand-big {
+            font-size: 22px;
+            font-weight: 950;
+            margin-bottom: 18px;
+        }
+
+        .brand-big span {
+            color: var(--yellow);
+        }
+
+        .start-card h1 {
+            margin: 0 0 10px;
+            font-size: 46px;
+            letter-spacing: -0.06em;
+            line-height: 1;
+        }
+
+        .start-card p {
+            margin: 0 0 24px;
+            color: #cbd5e1;
+            font-size: 18px;
+            line-height: 1.45;
+        }
+
+        .group-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+            margin-bottom: 22px;
+        }
+
+        .group-card {
+            cursor: pointer;
+            border: 1px solid rgba(148, 163, 184, 0.24);
+            border-radius: 22px;
+            padding: 18px;
+            background: rgba(2, 6, 23, 0.48);
+            transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .group-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .group-card.selected {
+            border-color: var(--yellow);
+            box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.18);
+            background:
+                radial-gradient(circle at top left, rgba(250, 204, 21, 0.18), transparent 46%),
+                rgba(2, 6, 23, 0.58);
+        }
+
+        .group-title {
+            font-size: 20px;
+            font-weight: 950;
+            margin-bottom: 6px;
+        }
+
+        .group-count {
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        .start-button {
+            width: 100%;
+            cursor: pointer;
+            border: none;
+            border-radius: 18px;
+            padding: 16px 18px;
+            font-size: 18px;
+            font-weight: 950;
+            color: #020617;
+            background: linear-gradient(135deg, var(--yellow), var(--orange));
+            box-shadow: 0 18px 44px rgba(250, 204, 21, 0.25);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .start-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 22px 50px rgba(250, 204, 21, 0.34);
+        }
+
+        .start-message {
+            margin-top: 14px;
+            min-height: 22px;
+            color: #fecaca;
+            font-weight: 900;
+        }
+
+        #gameScreen {
+            display: none;
+            min-height: 100vh;
             flex-direction: column;
         }
 
@@ -230,6 +342,13 @@
             box-shadow: 0 0 18px rgba(250, 204, 21, 0.42);
         }
 
+        .meter-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
         .meter-reset {
             cursor: pointer;
             border: 1px solid rgba(255, 255, 255, 0.16);
@@ -313,8 +432,12 @@
         }
 
         @keyframes glint {
-            from { transform: translateX(-120%); }
-            to { transform: translateX(330%); }
+            from {
+                transform: translateX(-120%);
+            }
+            to {
+                transform: translateX(330%);
+            }
         }
 
         .meter-bottom {
@@ -551,34 +674,72 @@
         }
 
         @keyframes pop {
-            0% { transform: scale(0.4); opacity: 0; }
-            50% { transform: scale(1.25); opacity: 1; }
-            100% { transform: scale(1); }
+            0% {
+                transform: scale(0.4);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.25);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1);
+            }
         }
 
         @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            20% { transform: translateX(-10px); }
-            40% { transform: translateX(10px); }
-            60% { transform: translateX(-8px); }
-            80% { transform: translateX(8px); }
+            0%, 100% {
+                transform: translateX(0);
+            }
+            20% {
+                transform: translateX(-10px);
+            }
+            40% {
+                transform: translateX(10px);
+            }
+            60% {
+                transform: translateX(-8px);
+            }
+            80% {
+                transform: translateX(8px);
+            }
         }
 
         @keyframes winnerPulse {
-            0% { transform: scale(1); }
-            45% { transform: scale(1.025); }
-            100% { transform: scale(1); }
+            0% {
+                transform: scale(1);
+            }
+            45% {
+                transform: scale(1.025);
+            }
+            100% {
+                transform: scale(1);
+            }
         }
 
         @keyframes revealPercent {
-            0% { transform: scale(0.3) rotate(-8deg); opacity: 0; }
-            60% { transform: scale(1.2) rotate(3deg); opacity: 1; }
-            100% { transform: scale(1) rotate(0); }
+            0% {
+                transform: scale(0.3) rotate(-8deg);
+                opacity: 0;
+            }
+            60% {
+                transform: scale(1.2) rotate(3deg);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1) rotate(0);
+            }
         }
 
         @keyframes confettiFall {
-            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-            100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(110vh) rotate(720deg);
+                opacity: 0;
+            }
         }
 
         @media (max-width: 980px) {
@@ -641,10 +802,28 @@
             }
         }
 
+        @media (max-width: 700px) {
+            .group-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .start-card h1 {
+                font-size: 34px;
+            }
+        }
+
         @media (max-width: 560px) {
             .meter-top {
                 align-items: stretch;
                 flex-direction: column;
+            }
+
+            .meter-actions {
+                justify-content: stretch;
+            }
+
+            .meter-reset {
+                flex: 1;
             }
 
             .meter-bottom {
@@ -660,113 +839,144 @@
 
 <body>
     <div class="game">
-        <div class="top-shell">
-            <div class="nav-bar">
-                <div class="brand">SECaT <span>Arcade</span></div>
-                <div class="nav-links">
-                    <a href="/" class="active">Higher or Lower</a>
-                    <a href="/prediction">Prediction Market</a>
+        <div class="start-screen" id="startScreen">
+            <div class="start-card">
+                <div class="brand-big">SECaT <span>Arcade</span></div>
+
+                <h1>Choose Your Course Mix</h1>
+
+                <p>
+                    Pick at least one course list. The game will only compare courses from your selected areas.
+                    Mix disciplines for chaos, or keep it focused for a cleaner challenge.
+                </p>
+
+                <div class="group-grid" id="courseGroupGrid">
+                    Loading course lists...
                 </div>
+
+                <button class="start-button" onclick="startGame()">
+                    Start Game
+                </button>
+
+                <div class="start-message" id="startMessage"></div>
             </div>
+        </div>
 
-            <div class="hud">
-                <div class="title-card">
-                    <div class="title-row">
-                        <h1>Higher or Lower</h1>
-                        <div class="score-chip" id="score">0 / 0</div>
-                    </div>
-
-                    <div class="question-clear" id="questionText">
-                        Loading question...
+        <div id="gameScreen">
+            <div class="top-shell">
+                <div class="nav-bar">
+                    <div class="brand">SECaT <span>Arcade</span></div>
+                    <div class="nav-links">
+                        <a href="/" class="active">Higher or Lower</a>
+                        <a href="/prediction">Prediction Market</a>
                     </div>
                 </div>
 
-                <div class="game-meter">
-                    <div class="meter-top">
-                        <div class="coin-badge">
-                            <div class="coin-icon">🪙</div>
-                            <div class="wallet-balance">0 SC</div>
+                <div class="hud">
+                    <div class="title-card">
+                        <div class="title-row">
+                            <h1>Higher or Lower</h1>
+                            <div class="score-chip" id="score">0 / 0</div>
                         </div>
 
-                        <button class="meter-reset" onclick="resetStreak()" title="Reset streak and load a new round">
-                            Reset Risk ↻
+                        <div class="question-clear" id="questionText">
+                            Loading question...
+                        </div>
+                    </div>
+
+                    <div class="game-meter">
+                        <div class="meter-top">
+                            <div class="coin-badge">
+                                <div class="coin-icon">🪙</div>
+                                <div class="wallet-balance">0 SC</div>
+                            </div>
+
+                            <div class="meter-actions">
+                                <button class="meter-reset" onclick="resetStreak()" title="Reset streak and load a new round">
+                                    Reset Risk ↻
+                                </button>
+
+                                <button class="meter-reset" onclick="changeCourseMix()" title="Choose different course lists">
+                                    Change Mix
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="meter-main">
+                            <div class="meter-label-row">
+                                <div>
+                                    <div class="meter-label">Streak Power</div>
+                                    <div class="streak-big"><span id="streakValue">0</span><span>streak</span></div>
+                                </div>
+                                <div class="meter-label" id="meterStatus">Safe Mode</div>
+                            </div>
+
+                            <div class="power-track">
+                                <div class="power-fill" id="powerFill"></div>
+                                <div class="power-glint"></div>
+                            </div>
+
+                            <div class="meter-bottom">
+                                <div class="meter-mini">
+                                    <div class="mini-label">Next win</div>
+                                    <div class="mini-value reward" id="nextRewardValue">+50 SC</div>
+                                </div>
+
+                                <div class="meter-mini">
+                                    <div class="mini-label">If wrong</div>
+                                    <div class="mini-value risk" id="nextLossValue">-15 SC</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="preload-status" id="preloadStatus"></div>
+            </div>
+
+            <div id="loading" class="loading">
+                Loading a random SECaT round... this can take a few seconds.
+            </div>
+
+            <div class="cards" id="cards" style="display: none;">
+                <div class="card left-card" id="leftCard">
+                    <div class="card-content">
+                        <div class="course-code" id="leftCode"></div>
+                        <div class="course-name" id="leftName"></div>
+                        <div class="offering" id="leftOffering"></div>
+
+                        <div class="answer-label">Had</div>
+                        <div class="percent" id="leftPercent"></div>
+                        <div class="answer-label" id="leftAnswer"></div>
+                    </div>
+                </div>
+
+                <div class="card right-card" id="rightCard">
+                    <div class="card-content">
+                        <div class="course-code" id="rightCode"></div>
+                        <div class="course-name" id="rightName"></div>
+                        <div class="offering" id="rightOffering"></div>
+
+                        <div class="answer-label">Had</div>
+                        <div class="hidden-percent" id="rightPercent">?</div>
+                        <div class="answer-label" id="rightAnswer"></div>
+
+                        <div class="buttons" id="choiceButtons">
+                            <button class="choice-button higher" onclick="makeGuess('higher')">Higher</button>
+                            <button class="choice-button lower" onclick="makeGuess('lower')">Lower</button>
+                        </div>
+
+                        <div class="message" id="message"></div>
+
+                        <button
+                            class="next-button"
+                            id="nextButton"
+                            onclick="loadRound()"
+                            style="display: none;"
+                        >
+                            Next Round
                         </button>
                     </div>
-
-                    <div class="meter-main">
-                        <div class="meter-label-row">
-                            <div>
-                                <div class="meter-label">Streak Power</div>
-                                <div class="streak-big"><span id="streakValue">0</span><span>streak</span></div>
-                            </div>
-                            <div class="meter-label" id="meterStatus">Safe Mode</div>
-                        </div>
-
-                        <div class="power-track">
-                            <div class="power-fill" id="powerFill"></div>
-                            <div class="power-glint"></div>
-                        </div>
-
-                        <div class="meter-bottom">
-                            <div class="meter-mini">
-                                <div class="mini-label">Next win</div>
-                                <div class="mini-value reward" id="nextRewardValue">+50 SC</div>
-                            </div>
-
-                            <div class="meter-mini">
-                                <div class="mini-label">If wrong</div>
-                                <div class="mini-value risk" id="nextLossValue">-15 SC</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="preload-status" id="preloadStatus"></div>
-        </div>
-
-        <div id="loading" class="loading">
-            Loading a random SECaT round... this can take a few seconds.
-        </div>
-
-        <div class="cards" id="cards" style="display: none;">
-            <div class="card left-card" id="leftCard">
-                <div class="card-content">
-                    <div class="course-code" id="leftCode"></div>
-                    <div class="course-name" id="leftName"></div>
-                    <div class="offering" id="leftOffering"></div>
-
-                    <div class="answer-label">Had</div>
-                    <div class="percent" id="leftPercent"></div>
-                    <div class="answer-label" id="leftAnswer"></div>
-                </div>
-            </div>
-
-            <div class="card right-card" id="rightCard">
-                <div class="card-content">
-                    <div class="course-code" id="rightCode"></div>
-                    <div class="course-name" id="rightName"></div>
-                    <div class="offering" id="rightOffering"></div>
-
-                    <div class="answer-label">Had</div>
-                    <div class="hidden-percent" id="rightPercent">?</div>
-                    <div class="answer-label" id="rightAnswer"></div>
-
-                    <div class="buttons" id="choiceButtons">
-                        <button class="choice-button higher" onclick="makeGuess('higher')">Higher</button>
-                        <button class="choice-button lower" onclick="makeGuess('lower')">Lower</button>
-                    </div>
-
-                    <div class="message" id="message"></div>
-
-                    <button
-                        class="next-button"
-                        id="nextButton"
-                        onclick="loadRound()"
-                        style="display: none;"
-                    >
-                        Next Round
-                    </button>
                 </div>
             </div>
         </div>
@@ -793,6 +1003,8 @@
         let roundsPlayed = 0;
         let currentStreak = 0;
         let gameOver = false;
+
+        let selectedCourseGroups = [];
 
         function getWalletBalance() {
             const stored = localStorage.getItem(WALLET_KEY);
@@ -889,6 +1101,79 @@
             updateWalletDisplay();
         }
 
+        async function loadCourseGroups() {
+            const grid = document.getElementById("courseGroupGrid");
+
+            try {
+                const response = await fetch("/api/course-groups");
+                const data = await response.json();
+
+                grid.innerHTML = "";
+
+                data.groups.forEach(group => {
+                    const card = document.createElement("div");
+                    card.className = "group-card";
+                    card.dataset.groupKey = group.key;
+
+                    card.innerHTML = `
+                        <div class="group-title">${group.label}</div>
+                        <div class="group-count">${group.count} courses</div>
+                    `;
+
+                    card.onclick = () => {
+                        card.classList.toggle("selected");
+                        updateSelectedCourseGroups();
+                    };
+
+                    grid.appendChild(card);
+                });
+
+            } catch (error) {
+                grid.innerText = "Could not load course lists.";
+            }
+        }
+
+        function updateSelectedCourseGroups() {
+            const selectedCards = document.querySelectorAll(".group-card.selected");
+
+            selectedCourseGroups = Array.from(selectedCards).map(card => {
+                return card.dataset.groupKey;
+            });
+
+            document.getElementById("startMessage").innerText = "";
+        }
+
+        function startGame() {
+            updateSelectedCourseGroups();
+
+            if (selectedCourseGroups.length === 0) {
+                document.getElementById("startMessage").innerText =
+                    "Pick at least one course list to start.";
+                return;
+            }
+
+            document.getElementById("startScreen").style.display = "none";
+            document.getElementById("gameScreen").style.display = "flex";
+
+            updateHud();
+            loadRound();
+        }
+
+        function changeCourseMix() {
+            currentRound = null;
+            nextRoundPromise = null;
+            nextRoundData = null;
+            gameOver = false;
+
+            document.getElementById("gameScreen").style.display = "none";
+            document.getElementById("cards").style.display = "none";
+            document.getElementById("loading").style.display = "none";
+            document.getElementById("message").innerText = "";
+            document.getElementById("preloadStatus").innerText = "";
+
+            document.getElementById("startScreen").style.display = "grid";
+        }
+
         function resetStreak() {
             const message = document.getElementById("message");
 
@@ -916,7 +1201,11 @@
         }
 
         async function fetchRound() {
-            const response = await fetch("/api/round");
+            const groupsQuery = selectedCourseGroups
+                .map(group => encodeURIComponent(group))
+                .join(",");
+
+            const response = await fetch("/api/round?groups=" + groupsQuery);
             const data = await response.json();
 
             if (!response.ok || data.error) {
@@ -1125,7 +1414,8 @@
         }
 
         updateHud();
-        loadRound();
+        updateWalletDisplay();
+        loadCourseGroups();
     </script>
 </body>
 </html>

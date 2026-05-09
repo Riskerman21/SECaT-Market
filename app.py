@@ -1,6 +1,6 @@
 from flask import Flask, render_template, jsonify, request
 
-from game import prepare_round
+from game import prepare_round, get_course_group_list
 from prediction_market import (
     create_random_prediction_market,
     create_prediction_market_for_course_code,
@@ -22,7 +22,15 @@ def prediction_page():
 
 @app.route("/api/round")
 def api_round():
-    round_data = prepare_round()
+    selected_groups_raw = request.args.get("groups", "")
+
+    course_groups = [
+        group.strip()
+        for group in selected_groups_raw.split(",")
+        if group.strip()
+    ]
+
+    round_data = prepare_round(course_groups=course_groups)
 
     if round_data is None:
         return jsonify({
@@ -38,6 +46,12 @@ def api_courses():
         "courses": get_course_list()
     })
 
+
+@app.route("/api/course-groups")
+def api_course_groups():
+    return jsonify({
+        "groups": get_course_group_list()
+    })
 
 @app.route("/api/prediction-market")
 def api_prediction_market():
