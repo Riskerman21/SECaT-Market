@@ -9,10 +9,20 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --bg: #080b12;
+            --panel: #111827;
+            --panel-light: #172033;
+            --border: #263247;
+            --muted: #94a3b8;
+            --text: #f8fafc;
+            --yellow: #facc15;
+        }
+
         body {
             margin: 0;
             font-family: Arial, Helvetica, sans-serif;
-            background: #111827;
+            background: var(--bg);
             color: white;
             overflow-x: hidden;
         }
@@ -23,16 +33,61 @@
             flex-direction: column;
         }
 
-        .top-bar {
-            padding: 18px 24px;
-            text-align: center;
+        .top-shell {
             background: #0f172a;
             border-bottom: 1px solid #334155;
+            padding: 16px 24px 18px;
+        }
+
+        .nav-bar {
+            max-width: 1180px;
+            margin: 0 auto 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(17, 24, 39, 0.85);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 12px 16px;
+        }
+
+        .brand {
+            font-size: 20px;
+            font-weight: 800;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-links a {
+            color: var(--muted);
+            text-decoration: none;
+            padding: 9px 14px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .nav-links a.active {
+            color: white;
+            background: var(--panel-light);
+            border: 1px solid var(--border);
+        }
+
+        .nav-links a:hover {
+            color: white;
+            background: #1f2937;
+        }
+
+        .top-bar {
+            text-align: center;
         }
 
         .top-bar h1 {
             margin: 0;
-            font-size: 30px;
+            font-size: 34px;
         }
 
         .question-clear {
@@ -270,6 +325,15 @@
         }
 
         @media (max-width: 800px) {
+            .top-shell {
+                padding: 12px;
+            }
+
+            .nav-bar {
+                flex-direction: column;
+                gap: 12px;
+            }
+
             .cards {
                 grid-template-columns: 1fr;
             }
@@ -297,15 +361,25 @@
 
 <body>
     <div class="game">
-        <div class="top-bar">
-            <h1>SECaT Higher or Lower</h1>
-
-            <div class="question-clear" id="questionText">
-                Loading question...
+        <div class="top-shell">
+            <div class="nav-bar">
+                <div class="brand">SECaT Markets</div>
+                <div class="nav-links">
+                    <a href="/" class="active">Higher or Lower</a>
+                    <a href="/prediction">Prediction Market</a>
+                </div>
             </div>
 
-            <div class="score" id="score">Score: 0</div>
-            <div class="preload-status" id="preloadStatus"></div>
+            <div class="top-bar">
+                <h1>SECaT Higher or Lower</h1>
+
+                <div class="question-clear" id="questionText">
+                    Loading question...
+                </div>
+
+                <div class="score" id="score">Score: 0</div>
+                <div class="preload-status" id="preloadStatus"></div>
+            </div>
         </div>
 
         <div id="loading" class="loading">

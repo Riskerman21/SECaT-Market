@@ -1,5 +1,11 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request
+
 from game import prepare_round
+from prediction_market import (
+    create_random_prediction_market,
+    create_prediction_market_for_course_code,
+    get_course_list,
+)
 
 app = Flask(__name__)
 
@@ -7,6 +13,11 @@ app = Flask(__name__)
 @app.route("/")
 def home():
     return render_template("index.html")
+
+
+@app.route("/prediction")
+def prediction_page():
+    return render_template("prediction.html")
 
 
 @app.route("/api/round")
@@ -19,6 +30,30 @@ def api_round():
         }), 500
 
     return jsonify(round_data)
+
+
+@app.route("/api/courses")
+def api_courses():
+    return jsonify({
+        "courses": get_course_list()
+    })
+
+
+@app.route("/api/prediction-market")
+def api_prediction_market():
+    selected_course = request.args.get("course")
+
+    if selected_course:
+        market = create_prediction_market_for_course_code(selected_course)
+    else:
+        market = create_random_prediction_market()
+
+    if market is None:
+        return jsonify({
+            "error": "Could not create a prediction market for this course."
+        }), 500
+
+    return jsonify(market)
 
 
 if __name__ == "__main__":

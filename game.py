@@ -35,7 +35,7 @@ COURSES = [
     {"code": "DECO2500", "name": "Human-Computer Interaction"},
     {"code": "DECO3800", "name": "Design Computing Studio 3 - Proposal"},
     {"code": "DECO3801", "name": "Design Computing Studio 3 - Build"},
-    {"code": "DECO6500", "name": "Advanced Human-Computer Interaction"},
+    {"code": "DECO6500", "name": "Advanced Human-Computer Interaction"}
 ]
 
 
