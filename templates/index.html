@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SECaT Higher or Lower</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #111827;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .game {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .top-bar {
+            padding: 18px 24px;
+            text-align: center;
+            background: #0f172a;
+            border-bottom: 1px solid #334155;
+        }
+
+        .top-bar h1 {
+            margin: 0;
+            font-size: 30px;
+        }
+
+        .question-clear {
+            margin: 12px auto 0;
+            max-width: 900px;
+            font-size: 18px;
+            line-height: 1.45;
+            color: #e5e7eb;
+        }
+
+        .question-clear strong {
+            color: #facc15;
+        }
+
+        .score {
+            margin-top: 10px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .preload-status {
+            margin-top: 6px;
+            font-size: 13px;
+            color: #94a3b8;
+        }
+
+        .cards {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .card {
+            position: relative;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+            min-height: 520px;
+            overflow: hidden;
+        }
+
+        .left-card {
+            background: linear-gradient(135deg, #2563eb, #1e3a8a);
+        }
+
+        .right-card {
+            background: linear-gradient(135deg, #dc2626, #7f1d1d);
+        }
+
+        .course-code {
+            font-size: 44px;
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+
+        .course-name {
+            font-size: 22px;
+            margin-bottom: 16px;
+            line-height: 1.35;
+        }
+
+        .offering {
+            font-size: 18px;
+            color: #e5e7eb;
+            margin-bottom: 28px;
+        }
+
+        .answer-label {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: #fef3c7;
+        }
+
+        .percent,
+        .hidden-percent {
+            font-size: 78px;
+            font-weight: bold;
+            margin: 16px 0;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 24px;
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            padding: 16px 28px;
+            border-radius: 999px;
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+            background: #111827;
+            border: 2px solid white;
+            transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+        }
+
+        button:hover {
+            background: white;
+            color: #111827;
+            transform: translateY(-2px) scale(1.03);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .message {
+            min-height: 44px;
+            margin-top: 24px;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .loading {
+            padding: 30px;
+            text-align: center;
+            font-size: 22px;
+            color: #facc15;
+        }
+
+        .next-button {
+            margin-top: 20px;
+            background: #16a34a;
+            border-color: #16a34a;
+        }
+
+        .next-button:hover {
+            background: white;
+            color: #16a34a;
+        }
+
+        .correct-pop {
+            animation: pop 0.7s ease;
+            color: #bbf7d0;
+            text-shadow: 0 0 18px rgba(34, 197, 94, 0.9);
+        }
+
+        .wrong-shake {
+            animation: shake 0.45s ease;
+            color: #fecaca;
+        }
+
+        .winner-card {
+            animation: winnerPulse 0.9s ease;
+            box-shadow: inset 0 0 90px rgba(250, 204, 21, 0.45);
+        }
+
+        .percent-reveal {
+            animation: revealPercent 0.65s ease;
+        }
+
+        .confetti-piece {
+            position: fixed;
+            top: -20px;
+            font-size: 24px;
+            z-index: 9999;
+            pointer-events: none;
+            animation: confettiFall 1.4s linear forwards;
+        }
+
+        @keyframes pop {
+            0% {
+                transform: scale(0.4);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.25);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes shake {
+            0%, 100% {
+                transform: translateX(0);
+            }
+            20% {
+                transform: translateX(-10px);
+            }
+            40% {
+                transform: translateX(10px);
+            }
+            60% {
+                transform: translateX(-8px);
+            }
+            80% {
+                transform: translateX(8px);
+            }
+        }
+
+        @keyframes winnerPulse {
+            0% {
+                transform: scale(1);
+            }
+            45% {
+                transform: scale(1.035);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes revealPercent {
+            0% {
+                transform: scale(0.3) rotate(-8deg);
+                opacity: 0;
+            }
+            60% {
+                transform: scale(1.2) rotate(3deg);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1) rotate(0);
+            }
+        }
+
+        @keyframes confettiFall {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(110vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        @media (max-width: 800px) {
+            .cards {
+                grid-template-columns: 1fr;
+            }
+
+            .card {
+                min-height: 420px;
+                padding: 28px;
+            }
+
+            .course-code {
+                font-size: 34px;
+            }
+
+            .percent,
+            .hidden-percent {
+                font-size: 58px;
+            }
+
+            .question-clear {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="game">
+        <div class="top-bar">
+            <h1>SECaT Higher or Lower</h1>
+
+            <div class="question-clear" id="questionText">
+                Loading question...
+            </div>
+
+            <div class="score" id="score">Score: 0</div>
+            <div class="preload-status" id="preloadStatus"></div>
+        </div>
+
+        <div id="loading" class="loading">
+            Loading a random SECaT round... this can take a few seconds.
+        </div>
+
+        <div class="cards" id="cards" style="display: none;">
+            <div class="card left-card" id="leftCard">
+                <div class="course-code" id="leftCode"></div>
+                <div class="course-name" id="leftName"></div>
+                <div class="offering" id="leftOffering"></div>
+
+                <div class="answer-label">had</div>
+                <div class="percent" id="leftPercent"></div>
+                <div class="answer-label" id="leftAnswer"></div>
+            </div>
+
+            <div class="card right-card" id="rightCard">
+                <div class="course-code" id="rightCode"></div>
+                <div class="course-name" id="rightName"></div>
+                <div class="offering" id="rightOffering"></div>
+
+                <div class="answer-label">had</div>
+                <div class="hidden-percent" id="rightPercent">?</div>
+                <div class="answer-label" id="rightAnswer"></div>
+
+                <div class="buttons" id="choiceButtons">
+                    <button onclick="makeGuess('higher')">Higher</button>
+                    <button onclick="makeGuess('lower')">Lower</button>
+                </div>
+
+                <div class="message" id="message"></div>
+
+                <button
+                    class="next-button"
+                    id="nextButton"
+                    onclick="loadRound()"
+                    style="display: none;"
+                >
+                    Next Round
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentRound = null;
+        let nextRoundPromise = null;
+        let nextRoundData = null;
+
+        let score = 0;
+        let roundsPlayed = 0;
+        let gameOver = false;
+
+        async function fetchRound() {
+            const response = await fetch("/api/round");
+            const data = await response.json();
+
+            if (!response.ok || data.error) {
+                throw new Error(data.error || "Could not load round.");
+            }
+
+            return data;
+        }
+
+        function startPreloadingNextRound() {
+            nextRoundData = null;
+
+            document.getElementById("preloadStatus").innerText =
+                "Preparing next round in the background...";
+
+            nextRoundPromise = fetchRound()
+                .then(data => {
+                    nextRoundData = data;
+                    document.getElementById("preloadStatus").innerText =
+                        "Next round ready.";
+                    return data;
+                })
+                .catch(error => {
+                    console.error(error);
+                    document.getElementById("preloadStatus").innerText =
+                        "Next round will load when you click Next.";
+                    nextRoundData = null;
+                    nextRoundPromise = null;
+                });
+        }
+
+        async function loadRound() {
+            gameOver = false;
+
+            resetAnimations();
+
+            document.getElementById("loading").style.display = "block";
+            document.getElementById("loading").innerText =
+                "Loading a random SECaT round... this can take a few seconds.";
+
+            document.getElementById("cards").style.display = "none";
+            document.getElementById("message").innerText = "";
+            document.getElementById("rightPercent").innerText = "?";
+            document.getElementById("choiceButtons").style.display = "flex";
+            document.getElementById("nextButton").style.display = "none";
+
+            try {
+                let data;
+
+                if (nextRoundData !== null) {
+                    data = nextRoundData;
+                    nextRoundData = null;
+                    nextRoundPromise = null;
+                } else if (nextRoundPromise !== null) {
+                    document.getElementById("loading").innerText =
+                        "Finishing the next round load...";
+                    data = await nextRoundPromise;
+                    nextRoundPromise = null;
+                    nextRoundData = null;
+                } else {
+                    data = await fetchRound();
+                }
+
+                currentRound = data;
+                renderRound(data);
+
+                document.getElementById("loading").style.display = "none";
+                document.getElementById("cards").style.display = "grid";
+
+                startPreloadingNextRound();
+
+            } catch (error) {
+                document.getElementById("loading").innerText =
+                    error.message || "Something went wrong loading the round.";
+            }
+        }
+
+        function renderRound(data) {
+            document.getElementById("questionText").innerHTML =
+                `Which course offering had a <strong>higher percentage</strong> of students who selected ` +
+                `<strong>${data.answer_option}</strong> for <strong>${data.question_name}</strong>?`;
+
+            document.getElementById("leftCode").innerText =
+                data.left.course;
+
+            document.getElementById("leftName").innerText =
+                data.left.name;
+
+            document.getElementById("leftOffering").innerText =
+                data.left.label.replace(data.left.course + ": ", "");
+
+            document.getElementById("leftPercent").innerText =
+                data.left.percent + "%";
+
+            document.getElementById("leftAnswer").innerText =
+                data.answer_option;
+
+            document.getElementById("rightCode").innerText =
+                data.right.course;
+
+            document.getElementById("rightName").innerText =
+                data.right.name;
+
+            document.getElementById("rightOffering").innerText =
+                data.right.label.replace(data.right.course + ": ", "");
+
+            document.getElementById("rightAnswer").innerText =
+                data.answer_option;
+        }
+
+        function makeGuess(guess) {
+            if (gameOver || currentRound === null) {
+                return;
+            }
+
+            gameOver = true;
+            roundsPlayed += 1;
+
+            const correctAnswer = currentRound.correct_answer;
+            const wasCorrect = guess === correctAnswer;
+
+            const rightPercent = document.getElementById("rightPercent");
+            const message = document.getElementById("message");
+
+            rightPercent.innerText = currentRound.right.percent + "%";
+            rightPercent.classList.add("percent-reveal");
+
+            const winningSide = getWinningSide();
+
+            if (winningSide === "left") {
+                document.getElementById("leftCard").classList.add("winner-card");
+            } else if (winningSide === "right") {
+                document.getElementById("rightCard").classList.add("winner-card");
+            }
+
+            if (wasCorrect) {
+                score += 1;
+                message.innerText = "Correct!";
+                message.classList.add("correct-pop");
+                launchConfetti();
+            } else {
+                message.innerText = "Wrong! It was " + correctAnswer + ".";
+                message.classList.add("wrong-shake");
+            }
+
+            document.getElementById("score").innerText =
+                "Score: " + score + " / " + roundsPlayed;
+
+            document.getElementById("choiceButtons").style.display = "none";
+            document.getElementById("nextButton").style.display = "inline-block";
+        }
+
+        function getWinningSide() {
+            const left = currentRound.left.percent;
+            const right = currentRound.right.percent;
+
+            if (left > right) {
+                return "left";
+            }
+
+            if (right > left) {
+                return "right";
+            }
+
+            return "same";
+        }
+
+        function resetAnimations() {
+            document.getElementById("leftCard").classList.remove("winner-card");
+            document.getElementById("rightCard").classList.remove("winner-card");
+            document.getElementById("rightPercent").classList.remove("percent-reveal");
+            document.getElementById("message").classList.remove("correct-pop");
+            document.getElementById("message").classList.remove("wrong-shake");
+        }
+
+        function launchConfetti() {
+            const emojis = ["🎉", "✨", "⭐", "🔥", "💯", "🎊"];
+
+            for (let i = 0; i < 36; i++) {
+                const piece = document.createElement("div");
+
+                piece.className = "confetti-piece";
+                piece.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+                piece.style.left = Math.random() * 100 + "vw";
+                piece.style.animationDelay = Math.random() * 0.25 + "s";
+                piece.style.fontSize = (18 + Math.random() * 18) + "px";
+
+                document.body.appendChild(piece);
+
+                setTimeout(() => {
+                    piece.remove();
+                }, 1700);
+            }
+        }
+
+        loadRound();
+    </script>
+</body>
+</html>

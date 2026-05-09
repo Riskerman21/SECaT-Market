@@ -4,9 +4,16 @@ import request_secat_data
 
 
 def outToData(courseName: str, sem: int, year: int, questionNum: int):
+    response = request_secat_data.getCourseData(courseName, sem, year)
 
+    print(f"\nAvailable offerings for {response['course']}:")
+    for offering in response["available_offerings"]:
+        print("-", offering)
 
-    contents = request_secat_data.getCourseData(courseName, sem, year)
+    if response["error"] is not None:
+        raise ValueError(response["error"])
+
+    contents = response["data"]
 
     match = re.search(r"courseSECATData\s*=\s*(\[.*\])\s*;", contents, re.DOTALL)
 
@@ -19,24 +26,13 @@ def outToData(courseName: str, sem: int, year: int, questionNum: int):
 
     q_results = [
         item for item in courseSECATData
-        if item["QUESTION_NAME"].startswith(f"Q{questionNum}")
+        if item["QUESTION_NAME"].startswith(f"Q{questionNum}:")
     ]
 
     q_results = sorted(q_results, key=lambda x: int(x["ANSWER"].split()[0]))
+
     return q_results
 
-courses = ['comp3301', 'csse1001']
+response = request_secat_data.getCourseData("COMP3301")
 
-for course in courses:
-    print(f"results for {course}")
-    q8_results = outToData(course, 2, 2024, 3)
-    for result in q8_results:
-        print(
-            result["ANSWER"],
-            "- Count:",
-            result["VALUE"],
-            "- Percent:",
-            round(result["PERCENT_ANSWER"], 2),
-            "%"
-        )
-
+print(response["available_offerings"])
