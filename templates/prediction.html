@@ -1303,11 +1303,7 @@
         const STARTING_BALANCE = 500;
 
         const MARKET_WINDOW_SECONDS = 45;
-        const BOT_TICK_MS = 1200;
-        const MAX_BOT_TRADE_SIZE = 80;
-        const MIN_BOT_TRADE_SIZE = 10;
-        const BOT_NOISE_STRENGTH = 7;
-        const PLAYER_IMPACT_STRENGTH = 0.035;
+        const BOT_TICK_MS = 1800;         // how often to poll /api/bot-activity in live mode
 
         let currentMarket = null;
         let selectedSide = null;
@@ -1661,13 +1657,16 @@
             marketVolume = 0;
 
             document.getElementById("botFeedList").innerText =
-                "Normal market mode. No bots. Bets stay open until a live market resolves or you reset saved bets.";
+                "Loading market activity...";
 
             document.getElementById("higherButton").disabled = false;
             document.getElementById("lowerButton").disabled = false;
 
             updateLivePrices();
             updateNormalMarketUI();
+
+            // Seed the feed with an initial bot round on market open
+            fetchBotActivity();
         }
 
         function updateNormalMarketUI() {
@@ -1713,8 +1712,10 @@
                 }
             }, 1000);
 
+            // Seed immediately, then poll backend bots on each tick
+            fetchBotActivity();
             botInterval = setInterval(() => {
-                simulateBotTrade();
+                fetchBotActivity();
             }, BOT_TICK_MS);
         }
 
@@ -1886,79 +1887,80 @@
             }
         }
 
-        function simulateBotTrade() {
-            if (!marketOpen || currentMarket === null || currentMarketMode !== "live") {
+        async function fetchBotActivity() {
+            if (currentMarket === null) {
                 return;
             }
 
-            const botNames = [
-                "Bot Alpha",
-                "Bot Vega",
-                "Bot Noodle",
-                "Bot Kangaroo",
-                "Bot Sigma",
-                "Bot Wombat",
-                "Bot Oracle"
-            ];
+            try {
+                const params = new URLSearchParams({
+                    course: currentMarket.course,
+                    question_num: currentMarket.question_num,
+                    answer_num: currentMarket.answer_num,
+                    market_key: currentMarket.market_key,
+                    base_price: currentMarket.initial_prediction,
+                });
 
-            const bot = botNames[Math.floor(Math.random() * botNames.length)];
+                const response = await fetch("/api/bot-activity?" + params.toString());
 
-            const side = Math.random() < liveHigherPrice / 100
-                ? "higher"
-                : "lower";
+                if (!response.ok) {
+                    return;
+                }
 
-            const action = Math.random() < 0.58
-                ? "buy"
-                : "sell";
+                const data = await response.json();
 
-            const stake =
-                MIN_BOT_TRADE_SIZE +
-                Math.random() * (MAX_BOT_TRADE_SIZE - MIN_BOT_TRADE_SIZE);
+                if (!data.bot_trades || data.bot_trades.length === 0) {
+                    return;
+                }
 
-            applyMarketMove(side, action, stake, true);
+                // Update the live higher price from the backend's authoritative price.
+                // Backend returns current_price as the HIGHER probability (0–100).
+                // Convert to cents (multiply by 1, it's already on the same scale).
+                const newHigherPrice = Math.round(
+                    Math.max(5, Math.min(95, data.current_price))
+                );
+                const priceChanged = newHigherPrice !== liveHigherPrice;
 
-            botTrades.unshift({
-                bot: bot,
-                side: side,
-                action: action,
-                stake: stake,
-                higherPrice: liveHigherPrice,
-                lowerPrice: liveLowerPrice,
-                time: new Date().toLocaleTimeString()
-            });
+                liveHigherPrice = newHigherPrice;
+                liveLowerPrice = 100 - liveHigherPrice;
 
-            botTrades = botTrades.slice(0, 8);
+                // Accumulate volume from bot share sizes
+                data.bot_trades.forEach(trade => {
+                    marketVolume += trade.size;
+                });
 
-            renderBotFeed();
-            updateLivePrices();
-            updateTradeSummary();
-            updateLiveMarketUI();
-        }
+                // Prepend new trades to the feed list (newest first, keep last 8)
+                data.bot_trades.forEach(trade => {
+                    botTrades.unshift({
+                        bot: trade.bot,
+                        personality: trade.personality,
+                        side: trade.direction.toLowerCase(),   // "higher" | "lower"
+                        size: trade.size,
+                        belief: trade.belief,
+                        higherPrice: liveHigherPrice,
+                        lowerPrice: liveLowerPrice,
+                        time: new Date().toLocaleTimeString(),
+                    });
+                });
 
-        function applyMarketMove(side, action, stake, isBot) {
-            const direction =
-                side === "higher"
-                    ? 1
-                    : -1;
+                botTrades = botTrades.slice(0, 8);
 
-            const actionDirection =
-                action === "buy"
-                    ? 1
-                    : -1;
+                renderBotFeed();
 
-            const noise = isBot
-                ? (Math.random() - 0.5) * BOT_NOISE_STRENGTH
-                : 0;
+                if (priceChanged) {
+                    updateLivePrices();
+                    updateTradeSummary();
+                }
 
-            const impact = stake * PLAYER_IMPACT_STRENGTH;
-            const move = direction * actionDirection * impact + noise;
+                if (currentMarketMode === "live") {
+                    updateLiveMarketUI();
+                } else {
+                    updateNormalMarketUI();
+                }
 
-            liveHigherPrice = Math.round(liveHigherPrice + move);
-            liveHigherPrice = Math.max(5, Math.min(95, liveHigherPrice));
-
-            liveLowerPrice = 100 - liveHigherPrice;
-
-            marketVolume += stake;
+            } catch (error) {
+                // Silently swallow network errors — bot feed is cosmetic
+            }
         }
 
         function updateLivePrices() {
@@ -1990,17 +1992,15 @@
                 const row = document.createElement("div");
                 row.className = "bot-trade";
 
-                const actionClass = trade.action === "buy"
-                    ? "bot-buy"
-                    : "bot-sell";
+                const sideClass = trade.side === "higher" ? "bot-buy" : "bot-sell";
 
                 row.innerHTML = `
                     <span>
                         <strong>${trade.bot}</strong>
-                        <span class="${actionClass}">${trade.action.toUpperCase()}</span>
-                        ${trade.side.toUpperCase()}
+                        <span class="${sideClass}">${trade.side.toUpperCase()}</span>
+                        <span style="color:#94a3b8;font-size:12px;">${trade.personality}</span>
                     </span>
-                    <span>${Math.round(trade.stake)} SC · H ${trade.higherPrice}¢</span>
+                    <span>${trade.size} shares · H ${trade.higherPrice}¢</span>
                 `;
 
                 list.appendChild(row);
@@ -2125,7 +2125,7 @@
                 profit.toFixed(2) + " SC";
         }
 
-        function placeTrade() {
+        async function placeTrade() {
             if (currentMarket === null || selectedSide === null) {
                 return;
             }
@@ -2161,14 +2161,62 @@
                 return;
             }
 
-            applyMarketMove(selectedSide, "buy", stake, false);
-            updateLivePrices();
+            // POST to backend — this records the trade, triggers a bot round,
+            // and returns the updated price driven by real bot logic.
+            try {
+                const response = await fetch("/api/trade", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        market_key: currentMarket.market_key,
+                        base_price: currentMarket.initial_prediction,
+                        direction: selectedSide.toUpperCase(),
+                        size: Math.round(stake),
+                    }),
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+
+                    // Apply backend's authoritative new price
+                    const newHigherPrice = Math.round(
+                        Math.max(5, Math.min(95, data.new_price))
+                    );
+                    liveHigherPrice = newHigherPrice;
+                    liveLowerPrice = 100 - liveHigherPrice;
+
+                    // Add reactive bot trades to the feed
+                    if (data.bot_trades && data.bot_trades.length > 0) {
+                        data.bot_trades.forEach(trade => {
+                            marketVolume += trade.size;
+                            botTrades.unshift({
+                                bot: trade.bot,
+                                personality: trade.personality,
+                                side: trade.direction.toLowerCase(),
+                                size: trade.size,
+                                belief: trade.belief,
+                                higherPrice: liveHigherPrice,
+                                lowerPrice: liveLowerPrice,
+                                time: new Date().toLocaleTimeString(),
+                            });
+                        });
+                        botTrades = botTrades.slice(0, 8);
+                        renderBotFeed();
+                    }
+                }
+            } catch (error) {
+                // Network error — price stays at local value, trade still saves
+            }
+
+            marketVolume += stake;
 
             if (currentMarketMode === "live") {
                 updateLiveMarketUI();
             } else {
                 updateNormalMarketUI();
             }
+
+            updateLivePrices();
 
             const position = {
                 id: Date.now().toString() + "_" + Math.random().toString(16).slice(2),
