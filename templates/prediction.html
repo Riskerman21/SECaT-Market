@@ -10,52 +10,67 @@
         }
 
         :root {
-            --bg: #080b12;
-            --panel: #111827;
-            --panel-light: #172033;
-            --border: #263247;
+            --bg: #070816;
+            --panel: rgba(15, 23, 42, 0.88);
+            --panel-solid: #111827;
+            --border: rgba(148, 163, 184, 0.24);
             --muted: #94a3b8;
             --text: #f8fafc;
+
+            --pink: #ec4899;
+            --purple: #8b5cf6;
+            --blue: #38bdf8;
+            --deep-blue: #3b82f6;
+            --cyan: #22d3ee;
             --green: #22c55e;
-            --red: #ef4444;
-            --blue: #3b82f6;
             --yellow: #facc15;
+            --orange: #fb923c;
+            --red: #ef4444;
         }
 
         body {
             margin: 0;
             font-family: Arial, Helvetica, sans-serif;
             background:
-                radial-gradient(circle at top left, rgba(59, 130, 246, 0.18), transparent 34%),
-                radial-gradient(circle at top right, rgba(34, 197, 94, 0.12), transparent 30%),
+                radial-gradient(circle at top left, rgba(236, 72, 153, 0.24), transparent 34%),
+                radial-gradient(circle at top right, rgba(56, 189, 248, 0.22), transparent 34%),
+                radial-gradient(circle at bottom, rgba(139, 92, 246, 0.20), transparent 36%),
                 var(--bg);
             color: var(--text);
+            overflow-x: hidden;
         }
 
         .page {
             min-height: 100vh;
-            padding: 24px;
+            padding: 14px 22px 24px;
         }
 
         .container {
-            max-width: 1180px;
+            max-width: 1220px;
             margin: 0 auto;
         }
 
         .nav-bar {
+            max-width: 1220px;
+            margin: 0 auto 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgba(17, 24, 39, 0.85);
+            background: rgba(15, 23, 42, 0.76);
             border: 1px solid var(--border);
-            border-radius: 18px;
-            padding: 14px 18px;
-            margin-bottom: 24px;
+            border-radius: 22px;
+            padding: 12px 16px;
+            backdrop-filter: blur(16px);
         }
 
         .brand {
             font-size: 20px;
-            font-weight: 800;
+            font-weight: 950;
+            letter-spacing: -0.03em;
+        }
+
+        .brand span {
+            color: var(--yellow);
         }
 
         .nav-links {
@@ -64,47 +79,220 @@
         }
 
         .nav-links a {
-            color: var(--muted);
+            color: #cbd5e1;
             text-decoration: none;
             padding: 9px 14px;
             border-radius: 999px;
-            font-weight: 700;
+            font-weight: 850;
             font-size: 14px;
         }
 
         .nav-links a.active {
+            color: #020617;
+            background: linear-gradient(135deg, var(--yellow), var(--orange));
+        }
+
+        .nav-links a:hover {
             color: white;
-            background: var(--panel-light);
-            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.10);
         }
 
-        .hero {
-            margin-bottom: 24px;
-        }
-
-        .hero h1 {
-            margin: 0 0 8px;
-            font-size: 42px;
-        }
-
-        .hero p {
-            margin: 0;
-            color: var(--muted);
-            font-size: 17px;
-            line-height: 1.45;
-        }
-
-        .layout {
+        .intro-layout {
             display: grid;
-            grid-template-columns: 1fr 380px;
+            grid-template-columns: 1fr 390px;
             gap: 20px;
+            align-items: start;
         }
 
+        .hero-card,
+        .setup-panel,
         .panel {
-            background: rgba(17, 24, 39, 0.92);
+            background: rgba(15, 23, 42, 0.88);
             border: 1px solid var(--border);
-            border-radius: 22px;
+            border-radius: 26px;
             box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+            backdrop-filter: blur(12px);
+        }
+
+        .hero-card {
+            position: relative;
+            overflow: hidden;
+            padding: 28px;
+            min-height: 260px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background:
+                linear-gradient(135deg, rgba(236, 72, 153, 0.18), rgba(56, 189, 248, 0.12)),
+                rgba(15, 23, 42, 0.74);
+        }
+
+        .hero-card::after {
+            content: "";
+            position: absolute;
+            width: 240px;
+            height: 240px;
+            right: -100px;
+            top: -110px;
+            border-radius: 999px;
+            background: rgba(250, 204, 21, 0.18);
+            filter: blur(6px);
+        }
+
+        .hero-card h1 {
+            position: relative;
+            z-index: 1;
+            margin: 0 0 12px;
+            font-size: 46px;
+            line-height: 1;
+            letter-spacing: -0.06em;
+        }
+
+        .hero-card p {
+            position: relative;
+            z-index: 1;
+            margin: 0;
+            color: #e5e7eb;
+            font-size: 18px;
+            line-height: 1.5;
+            max-width: 760px;
+        }
+
+        .coin-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 22px;
+            width: fit-content;
+            background: linear-gradient(135deg, rgba(250, 204, 21, 0.22), rgba(251, 146, 60, 0.12));
+            border: 1px solid rgba(250, 204, 21, 0.32);
+            border-radius: 999px;
+            padding: 11px 16px;
+            font-weight: 950;
+            color: #fde68a;
+            box-shadow: 0 0 26px rgba(250, 204, 21, 0.16);
+        }
+
+        .coin-icon {
+            width: 30px;
+            height: 30px;
+            display: grid;
+            place-items: center;
+            border-radius: 999px;
+            color: #713f12;
+            background: linear-gradient(135deg, #fde68a, #f59e0b);
+            box-shadow: 0 0 18px rgba(250, 204, 21, 0.42);
+        }
+
+        .wallet-balance {
+            font-size: 22px;
+            letter-spacing: -0.04em;
+        }
+
+        .setup-panel {
+            padding: 20px;
+        }
+
+        .setup-title {
+            font-size: 25px;
+            font-weight: 950;
+            margin-bottom: 6px;
+            letter-spacing: -0.04em;
+        }
+
+        .setup-subtitle {
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.45;
+            margin-bottom: 18px;
+        }
+
+        .selector-box {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 12px;
+            font-weight: 950;
+            color: #cbd5e1;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+        }
+
+        select,
+        input {
+            width: 100%;
+            padding: 13px 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            background: rgba(2, 6, 23, 0.56);
+            color: white;
+            font-size: 15px;
+            outline: none;
+        }
+
+        select:focus,
+        input:focus {
+            border-color: rgba(56, 189, 248, 0.75);
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.14);
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            border-radius: 14px;
+            padding: 13px 14px;
+            font-size: 15px;
+            font-weight: 950;
+            color: white;
+            transition: transform 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+        }
+
+        button:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .primary-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--cyan), var(--deep-blue));
+            margin-top: 4px;
+            box-shadow: 0 12px 30px rgba(59, 130, 246, 0.25);
+        }
+
+        .loading {
+            display: none;
+            color: var(--yellow);
+            margin-top: 12px;
+            font-weight: 900;
+            line-height: 1.4;
+        }
+
+        .message {
+            margin-top: 14px;
+            min-height: 24px;
+            font-size: 15px;
+            font-weight: 900;
+            color: #bbf7d0;
+            line-height: 1.4;
+        }
+
+        .market-section {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .market-layout {
+            display: grid;
+            grid-template-columns: 1fr 390px;
+            gap: 20px;
         }
 
         .market-panel {
@@ -118,12 +306,16 @@
             grid-template-columns: 1fr auto;
             gap: 16px;
             align-items: start;
+            background:
+                radial-gradient(circle at top left, rgba(56, 189, 248, 0.18), transparent 38%),
+                rgba(15, 23, 42, 0.72);
         }
 
         .course-code {
-            font-size: 34px;
-            font-weight: 900;
+            font-size: 38px;
+            font-weight: 950;
             margin-bottom: 4px;
+            letter-spacing: -0.06em;
         }
 
         .course-name {
@@ -133,13 +325,13 @@
         }
 
         .market-badge {
-            background: rgba(59, 130, 246, 0.14);
+            background: rgba(59, 130, 246, 0.16);
             color: #bfdbfe;
             border: 1px solid rgba(59, 130, 246, 0.35);
-            padding: 8px 12px;
+            padding: 9px 13px;
             border-radius: 999px;
             font-size: 13px;
-            font-weight: 800;
+            font-weight: 900;
             white-space: nowrap;
         }
 
@@ -150,10 +342,12 @@
         .question-box,
         .upcoming-box,
         .chart-card,
-        .history {
-            background: #0b1220;
-            border: 1px solid var(--border);
-            border-radius: 18px;
+        .history,
+        .trade-summary,
+        .positions {
+            background: rgba(2, 6, 23, 0.48);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            border-radius: 20px;
             padding: 18px;
             margin-bottom: 18px;
         }
@@ -161,27 +355,35 @@
         .question-label,
         .upcoming-title {
             color: var(--muted);
-            font-size: 13px;
-            font-weight: 800;
+            font-size: 12px;
+            font-weight: 950;
             text-transform: uppercase;
-            letter-spacing: 0.08em;
+            letter-spacing: 0.09em;
             margin-bottom: 10px;
         }
 
         .market-question {
-            font-size: 25px;
+            font-size: 26px;
             line-height: 1.35;
-            font-weight: 850;
+            font-weight: 900;
+            letter-spacing: -0.03em;
         }
 
         .market-question strong {
             color: var(--yellow);
         }
 
+        .upcoming-box {
+            background:
+                linear-gradient(135deg, rgba(56, 189, 248, 0.12), rgba(139, 92, 246, 0.08)),
+                rgba(2, 6, 23, 0.42);
+        }
+
         .upcoming-main {
             font-size: 20px;
-            font-weight: 900;
+            font-weight: 950;
             margin-bottom: 6px;
+            color: #e0f2fe;
         }
 
         .upcoming-reason {
@@ -198,21 +400,41 @@
         }
 
         .stat {
-            background: #0b1220;
-            border: 1px solid var(--border);
-            border-radius: 16px;
+            position: relative;
+            overflow: hidden;
+            background: rgba(2, 6, 23, 0.48);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            border-radius: 18px;
             padding: 16px;
         }
 
+        .stat::before {
+            content: "";
+            position: absolute;
+            width: 90px;
+            height: 90px;
+            right: -38px;
+            top: -44px;
+            border-radius: 999px;
+            background: rgba(56, 189, 248, 0.16);
+            filter: blur(4px);
+        }
+
         .stat-label {
+            position: relative;
             color: var(--muted);
-            font-size: 13px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            font-weight: 950;
             margin-bottom: 8px;
         }
 
         .stat-value {
-            font-size: 24px;
-            font-weight: 900;
+            position: relative;
+            font-size: 26px;
+            font-weight: 950;
+            letter-spacing: -0.05em;
         }
 
         .outcome-grid {
@@ -223,29 +445,35 @@
         }
 
         .outcome-card {
-            border-radius: 20px;
+            border-radius: 24px;
             padding: 20px;
-            border: 1px solid var(--border);
-            background: #0b1220;
+            border: 1px solid rgba(148, 163, 184, 0.20);
+            background: rgba(2, 6, 23, 0.48);
             cursor: pointer;
             transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+            overflow: hidden;
+            position: relative;
         }
 
         .outcome-card:hover {
-            transform: translateY(-2px);
+            transform: translateY(-3px);
         }
 
         .outcome-card.selected {
-            box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.18);
+            box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.22);
             border-color: var(--yellow);
         }
 
         .outcome-card.higher {
-            background: linear-gradient(135deg, rgba(34, 197, 94, 0.14), #0b1220 56%);
+            background:
+                radial-gradient(circle at top left, rgba(34, 197, 94, 0.30), transparent 48%),
+                rgba(2, 6, 23, 0.52);
         }
 
         .outcome-card.lower {
-            background: linear-gradient(135deg, rgba(239, 68, 68, 0.14), #0b1220 56%);
+            background:
+                radial-gradient(circle at top left, rgba(239, 68, 68, 0.30), transparent 48%),
+                rgba(2, 6, 23, 0.52);
         }
 
         .outcome-top {
@@ -253,28 +481,31 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 18px;
+            gap: 12px;
         }
 
         .outcome-name {
-            font-size: 22px;
-            font-weight: 900;
+            font-size: 23px;
+            font-weight: 950;
+            letter-spacing: -0.04em;
         }
 
         .outcome-price {
-            font-size: 34px;
-            font-weight: 900;
+            font-size: 38px;
+            font-weight: 950;
+            letter-spacing: -0.07em;
         }
 
         .higher .outcome-price {
-            color: var(--green);
+            color: #86efac;
         }
 
         .lower .outcome-price {
-            color: var(--red);
+            color: #fca5a5;
         }
 
         .outcome-sub {
-            color: var(--muted);
+            color: #cbd5e1;
             font-size: 14px;
             line-height: 1.4;
         }
@@ -301,7 +532,8 @@
             width: 100%;
             max-width: 46px;
             border-radius: 10px 10px 4px 4px;
-            background: linear-gradient(180deg, #60a5fa, #2563eb);
+            background: linear-gradient(180deg, var(--cyan), var(--deep-blue));
+            box-shadow: 0 0 18px rgba(56, 189, 248, 0.22);
             min-height: 4px;
         }
 
@@ -309,6 +541,14 @@
             color: var(--muted);
             font-size: 11px;
             text-align: center;
+            font-weight: 800;
+        }
+
+        .history h2,
+        .positions h3 {
+            margin: 0 0 12px;
+            font-size: 18px;
+            letter-spacing: -0.03em;
         }
 
         .history-row {
@@ -326,7 +566,7 @@
         }
 
         .history-percent {
-            font-weight: 900;
+            font-weight: 950;
             color: #bfdbfe;
         }
 
@@ -338,35 +578,57 @@
         }
 
         .trade-title {
-            font-size: 22px;
-            font-weight: 900;
+            font-size: 25px;
+            font-weight: 950;
             margin-bottom: 14px;
+            letter-spacing: -0.04em;
         }
 
-        .selector-box {
+        .trade-coin-meter {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            background:
+                linear-gradient(135deg, rgba(250, 204, 21, 0.18), rgba(251, 146, 60, 0.08)),
+                rgba(2, 6, 23, 0.46);
+            border: 1px solid rgba(250, 204, 21, 0.24);
+            border-radius: 20px;
+            padding: 14px;
             margin-bottom: 16px;
         }
 
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 13px;
-            font-weight: 900;
-            color: #cbd5e1;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+        .trade-coin-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        select,
-        input {
-            width: 100%;
-            padding: 13px 14px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            background: #0b1220;
-            color: white;
-            font-size: 15px;
-            outline: none;
+        .trade-coin-label {
+            color: var(--muted);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-weight: 950;
+            margin-bottom: 3px;
+        }
+
+        .trade-coin-value {
+            font-size: 22px;
+            font-weight: 950;
+            color: #fde68a;
+            letter-spacing: -0.04em;
+        }
+
+        .selected-side-pill {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 999px;
+            padding: 8px 11px;
+            color: #e5e7eb;
+            font-size: 13px;
+            font-weight: 900;
+            white-space: nowrap;
         }
 
         .button-row {
@@ -376,46 +638,22 @@
             margin-bottom: 14px;
         }
 
-        button {
-            cursor: pointer;
-            border: none;
-            border-radius: 12px;
-            padding: 13px 14px;
-            font-size: 15px;
-            font-weight: 900;
-            color: white;
-            transition: transform 0.15s ease, opacity 0.15s ease;
-        }
-
-        button:hover {
-            transform: translateY(-1px);
-        }
-
-        button:disabled {
-            opacity: 0.45;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .primary-btn {
-            width: 100%;
-            background: var(--blue);
-            margin-top: 4px;
-        }
-
         .higher-btn {
-            background: var(--green);
+            background: linear-gradient(135deg, #86efac, var(--green));
+            color: #052e16;
         }
 
         .lower-btn {
-            background: var(--red);
+            background: linear-gradient(135deg, #fecaca, #fb7185);
+            color: #450a0a;
         }
 
         .secondary-btn {
             width: 100%;
-            background: #1f2937;
+            background: rgba(255, 255, 255, 0.08);
             color: #cbd5e1;
             margin-top: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
         }
 
         .selected-higher {
@@ -424,40 +662,6 @@
 
         .selected-lower {
             box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25);
-        }
-
-        .wallet {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 16px;
-        }
-
-        .wallet-card {
-            background: #0b1220;
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 12px;
-        }
-
-        .wallet-label {
-            color: var(--muted);
-            font-size: 12px;
-            margin-bottom: 6px;
-        }
-
-        .wallet-value {
-            font-size: 20px;
-            font-weight: 900;
-        }
-
-        .trade-summary,
-        .positions {
-            margin-top: 16px;
-            background: #0b1220;
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 14px;
         }
 
         .summary-row {
@@ -470,27 +674,6 @@
 
         .summary-row strong {
             color: white;
-        }
-
-        .message {
-            margin-top: 14px;
-            min-height: 24px;
-            font-size: 15px;
-            font-weight: 800;
-            color: #bbf7d0;
-            line-height: 1.4;
-        }
-
-        .loading {
-            display: none;
-            color: var(--yellow);
-            margin-top: 12px;
-            font-weight: 800;
-        }
-
-        .positions h3 {
-            margin: 0 0 10px;
-            font-size: 16px;
         }
 
         .position-item {
@@ -524,8 +707,9 @@
             }
         }
 
-        @media (max-width: 940px) {
-            .layout {
+        @media (max-width: 980px) {
+            .intro-layout,
+            .market-layout {
                 grid-template-columns: 1fr;
             }
 
@@ -536,7 +720,7 @@
 
         @media (max-width: 640px) {
             .page {
-                padding: 14px;
+                padding: 12px;
             }
 
             .nav-bar {
@@ -544,14 +728,13 @@
                 gap: 12px;
             }
 
-            .hero h1 {
-                font-size: 32px;
+            .hero-card h1 {
+                font-size: 34px;
             }
 
             .market-header,
             .market-stats,
             .outcome-grid,
-            .wallet,
             .button-row {
                 grid-template-columns: 1fr;
             }
@@ -559,6 +742,11 @@
             .history-row {
                 grid-template-columns: 1fr;
                 gap: 4px;
+            }
+
+            .trade-coin-meter {
+                align-items: stretch;
+                flex-direction: column;
             }
         }
     </style>
@@ -568,94 +756,32 @@
     <div class="page">
         <div class="container">
             <div class="nav-bar">
-                <div class="brand">SECaT Markets</div>
+                <div class="brand">SECaT <span>Arcade</span></div>
                 <div class="nav-links">
                     <a href="/">Higher or Lower</a>
                     <a href="/prediction" class="active">Prediction Market</a>
                 </div>
             </div>
 
-            <div class="hero">
-                <h1>Prediction Market</h1>
-                <p>
-                    Earn SECaT Coins in Higher or Lower, then use them to buy fake positions
-                    on future SECaT results.
-                </p>
-            </div>
+            <div id="setupSection" class="intro-layout">
+                <div class="hero-card">
+                    <h1>Prediction Market</h1>
+                    <p>
+                        Build a market first. Pick a course and SECaT question, then the trading board
+                        will open with prices, trend data, and fake positions.
+                    </p>
 
-            <div class="layout">
-                <main class="panel market-panel" id="marketCard" style="display: none;">
-                    <div class="market-header">
-                        <div>
-                            <div class="course-code" id="courseCode">---</div>
-                            <div class="course-name" id="courseName">Choose a course and question to build a market.</div>
-                        </div>
-                        <div class="market-badge" id="marketBadge">Upcoming semester</div>
+                    <div class="coin-badge">
+                        <div class="coin-icon">🪙</div>
+                        <div class="wallet-balance">0 SC</div>
                     </div>
+                </div>
 
-                    <div class="market-body">
-                        <div class="question-box">
-                            <div class="question-label">Market question</div>
-                            <div class="market-question" id="marketQuestion"></div>
-                        </div>
-
-                        <div class="upcoming-box">
-                            <div class="upcoming-title">Upcoming offering guess</div>
-                            <div class="upcoming-main" id="upcomingGuessMain">--</div>
-                            <div class="upcoming-reason" id="upcomingGuessReason">--</div>
-                        </div>
-
-                        <div class="market-stats">
-                            <div class="stat">
-                                <div class="stat-label">Initial prediction</div>
-                                <div class="stat-value" id="predictionValue">--%</div>
-                            </div>
-                            <div class="stat">
-                                <div class="stat-label">Confidence</div>
-                                <div class="stat-value" id="confidenceValue">--</div>
-                            </div>
-                            <div class="stat">
-                                <div class="stat-label">History used</div>
-                                <div class="stat-value" id="historyCount">--</div>
-                            </div>
-                        </div>
-
-                        <div class="outcome-grid">
-                            <div class="outcome-card higher" id="higherCard" onclick="selectSide('higher')">
-                                <div class="outcome-top">
-                                    <div class="outcome-name">Higher</div>
-                                    <div class="outcome-price" id="higherPrice">--¢</div>
-                                </div>
-                                <div class="outcome-sub">
-                                    Pays if the final result is above the initial prediction.
-                                </div>
-                            </div>
-
-                            <div class="outcome-card lower" id="lowerCard" onclick="selectSide('lower')">
-                                <div class="outcome-top">
-                                    <div class="outcome-name">Lower</div>
-                                    <div class="outcome-price" id="lowerPrice">--¢</div>
-                                </div>
-                                <div class="outcome-sub">
-                                    Pays if the final result is below the initial prediction.
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="chart-card">
-                            <div class="question-label">Previous semester trend</div>
-                            <div class="mini-chart" id="miniChart"></div>
-                        </div>
-
-                        <div class="history">
-                            <h2>Historical SECaT data used by the market</h2>
-                            <div id="historyList"></div>
-                        </div>
+                <aside class="setup-panel">
+                    <div class="setup-title">Create Market</div>
+                    <div class="setup-subtitle">
+                        Nothing is shown until the market is built, so the screen stays clean.
                     </div>
-                </main>
-
-                <aside class="panel trade-panel">
-                    <div class="trade-title">Trade Ticket</div>
 
                     <div class="selector-box">
                         <label for="courseSelect">Course</label>
@@ -688,77 +814,161 @@
 
                     <button class="primary-btn" onclick="loadMarket()">Build Market</button>
                     <div class="loading" id="loading">Building market from cached SECaT data...</div>
-
-                    <div class="wallet">
-                        <div class="wallet-card">
-                            <div class="wallet-label">SECaT Coins</div>
-                            <div class="wallet-value wallet-balance" id="balanceValue">0 SC</div>
-                        </div>
-                        <div class="wallet-card">
-                            <div class="wallet-label">Selected side</div>
-                            <div class="wallet-value" id="selectedSideValue">--</div>
-                        </div>
-                    </div>
-
-                    <div class="button-row">
-                        <button class="higher-btn" id="higherButton" onclick="selectSide('higher')" disabled>
-                            Buy Higher
-                        </button>
-                        <button class="lower-btn" id="lowerButton" onclick="selectSide('lower')" disabled>
-                            Buy Lower
-                        </button>
-                    </div>
-
-                    <div class="selector-box">
-                        <label for="stakeInput">Stake in SECaT Coins</label>
-                        <input
-                            id="stakeInput"
-                            type="number"
-                            min="1"
-                            step="1"
-                            value="100"
-                            oninput="updateTradeSummary()"
-                        >
-                    </div>
-
-                    <div class="trade-summary">
-                        <div class="summary-row">
-                            <span>Market price</span>
-                            <strong id="selectedPrice">--</strong>
-                        </div>
-                        <div class="summary-row">
-                            <span>Estimated shares</span>
-                            <strong id="estimatedShares">--</strong>
-                        </div>
-                        <div class="summary-row">
-                            <span>Potential payout</span>
-                            <strong id="potentialPayout">--</strong>
-                        </div>
-                        <div class="summary-row">
-                            <span>Potential profit</span>
-                            <strong id="potentialProfit">--</strong>
-                        </div>
-                    </div>
-
-                    <button class="primary-btn" id="placeTradeButton" onclick="placeTrade()" disabled>
-                        Place Fake Trade
-                    </button>
-
-                    <button class="secondary-btn" onclick="resetPortfolio()">
-                        Reset Portfolio
-                    </button>
-
-                    <button class="secondary-btn" onclick="resetWalletForTesting()">
-                        Reset Wallet to 500 SC
-                    </button>
-
                     <div class="message" id="choiceMessage"></div>
-
-                    <div class="positions">
-                        <h3>Open Positions</h3>
-                        <div id="positionsList" class="empty">No positions yet.</div>
-                    </div>
                 </aside>
+            </div>
+
+            <div id="marketSection" class="market-section">
+                <div class="market-layout">
+                    <main class="panel market-panel" id="marketCard">
+                        <div class="market-header">
+                            <div>
+                                <div class="course-code" id="courseCode">---</div>
+                                <div class="course-name" id="courseName">Choose a course and question to build a market.</div>
+                            </div>
+                            <div class="market-badge" id="marketBadge">Upcoming semester</div>
+                        </div>
+
+                        <div class="market-body">
+                            <div class="question-box">
+                                <div class="question-label">Market question</div>
+                                <div class="market-question" id="marketQuestion"></div>
+                            </div>
+
+                            <div class="upcoming-box">
+                                <div class="upcoming-title">Upcoming offering guess</div>
+                                <div class="upcoming-main" id="upcomingGuessMain">--</div>
+                                <div class="upcoming-reason" id="upcomingGuessReason">--</div>
+                            </div>
+
+                            <div class="market-stats">
+                                <div class="stat">
+                                    <div class="stat-label">Initial prediction</div>
+                                    <div class="stat-value" id="predictionValue">--%</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-label">Confidence</div>
+                                    <div class="stat-value" id="confidenceValue">--</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-label">History used</div>
+                                    <div class="stat-value" id="historyCount">--</div>
+                                </div>
+                            </div>
+
+                            <div class="outcome-grid">
+                                <div class="outcome-card higher" id="higherCard" onclick="selectSide('higher')">
+                                    <div class="outcome-top">
+                                        <div class="outcome-name">Higher</div>
+                                        <div class="outcome-price" id="higherPrice">--¢</div>
+                                    </div>
+                                    <div class="outcome-sub">
+                                        Pays if the final result is above the initial prediction.
+                                    </div>
+                                </div>
+
+                                <div class="outcome-card lower" id="lowerCard" onclick="selectSide('lower')">
+                                    <div class="outcome-top">
+                                        <div class="outcome-name">Lower</div>
+                                        <div class="outcome-price" id="lowerPrice">--¢</div>
+                                    </div>
+                                    <div class="outcome-sub">
+                                        Pays if the final result is below the initial prediction.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="chart-card">
+                                <div class="question-label">Previous semester trend</div>
+                                <div class="mini-chart" id="miniChart"></div>
+                            </div>
+
+                            <div class="history">
+                                <h2>Historical SECaT data used by the market</h2>
+                                <div id="historyList"></div>
+                            </div>
+                        </div>
+                    </main>
+
+                    <aside class="panel trade-panel">
+                        <div class="trade-title">Trade Ticket</div>
+
+                        <div class="trade-coin-meter">
+                            <div class="trade-coin-left">
+                                <div class="coin-icon">🪙</div>
+                                <div>
+                                    <div class="trade-coin-label">Balance</div>
+                                    <div class="trade-coin-value wallet-balance" id="balanceValue">0 SC</div>
+                                </div>
+                            </div>
+
+                            <div class="selected-side-pill">
+                                Side: <span id="selectedSideValue">--</span>
+                            </div>
+                        </div>
+
+                        <div class="button-row">
+                            <button class="higher-btn" id="higherButton" onclick="selectSide('higher')" disabled>
+                                Buy Higher
+                            </button>
+                            <button class="lower-btn" id="lowerButton" onclick="selectSide('lower')" disabled>
+                                Buy Lower
+                            </button>
+                        </div>
+
+                        <div class="selector-box">
+                            <label for="stakeInput">Stake in SECaT Coins</label>
+                            <input
+                                id="stakeInput"
+                                type="number"
+                                min="1"
+                                step="1"
+                                value="100"
+                                oninput="updateTradeSummary()"
+                            >
+                        </div>
+
+                        <div class="trade-summary">
+                            <div class="summary-row">
+                                <span>Market price</span>
+                                <strong id="selectedPrice">--</strong>
+                            </div>
+                            <div class="summary-row">
+                                <span>Estimated shares</span>
+                                <strong id="estimatedShares">--</strong>
+                            </div>
+                            <div class="summary-row">
+                                <span>Potential payout</span>
+                                <strong id="potentialPayout">--</strong>
+                            </div>
+                            <div class="summary-row">
+                                <span>Potential profit</span>
+                                <strong id="potentialProfit">--</strong>
+                            </div>
+                        </div>
+
+                        <button class="primary-btn" id="placeTradeButton" onclick="placeTrade()" disabled>
+                            Place Fake Trade
+                        </button>
+
+                        <button class="secondary-btn" onclick="resetPortfolio()">
+                            Reset Portfolio
+                        </button>
+
+                        <button class="secondary-btn" onclick="resetWalletForTesting()">
+                            Reset Wallet to 500 SC
+                        </button>
+
+                        <button class="secondary-btn" onclick="backToSetup()">
+                            Build Another Market
+                        </button>
+
+                        <div class="positions">
+                            <h3>Open Positions</h3>
+                            <div id="positionsList" class="empty">No positions yet.</div>
+                        </div>
+                    </aside>
+                </div>
             </div>
         </div>
     </div>
@@ -853,9 +1063,7 @@
             document.getElementById("loading").style.display = "block";
             document.getElementById("loading").innerText =
                 "Building market from cached SECaT data...";
-
             document.getElementById("choiceMessage").innerText = "";
-            document.getElementById("marketCard").style.display = "none";
 
             try {
                 const url =
@@ -877,17 +1085,30 @@
                 renderMarket(data);
 
                 document.getElementById("loading").style.display = "none";
-                document.getElementById("marketCard").style.display = "block";
+                document.getElementById("setupSection").style.display = "none";
+                document.getElementById("marketSection").style.display = "block";
+                document.getElementById("marketSection").classList.add("fade-in");
 
                 document.getElementById("higherButton").disabled = false;
                 document.getElementById("lowerButton").disabled = false;
 
                 updateTradeSummary();
+                updateWalletDisplay();
 
             } catch (error) {
                 document.getElementById("loading").innerText =
                     "Something went wrong building the market.";
             }
+        }
+
+        function backToSetup() {
+            document.getElementById("marketSection").style.display = "none";
+            document.getElementById("setupSection").style.display = "grid";
+            document.getElementById("loading").style.display = "none";
+            document.getElementById("choiceMessage").innerText = "";
+            selectedSide = null;
+            resetSelectionUI();
+            updateWalletDisplay();
         }
 
         function renderMarket(market) {
@@ -1082,14 +1303,12 @@
             const currentBalance = getWalletBalance();
 
             if (stake <= 0) {
-                document.getElementById("choiceMessage").innerText =
-                    "Enter a stake greater than zero.";
+                alert("Enter a stake greater than zero.");
                 return;
             }
 
             if (stake > currentBalance) {
-                document.getElementById("choiceMessage").innerText =
-                    "Not enough SECaT Coins. Play Higher or Lower to earn more.";
+                alert("Not enough SECaT Coins. Play Higher or Lower to earn more.");
                 return;
             }
 
@@ -1102,8 +1321,7 @@
             const spent = spendCoins(stake);
 
             if (!spent) {
-                document.getElementById("choiceMessage").innerText =
-                    "Not enough SECaT Coins.";
+                alert("Not enough SECaT Coins.");
                 return;
             }
 
@@ -1119,11 +1337,10 @@
                 shares: shares
             });
 
-            document.getElementById("choiceMessage").innerText =
-                `Trade placed: ${selectedSide.toUpperCase()} ${stake.toFixed(0)} SC at ${priceCents}¢.`;
-
-            updateWalletDisplay();
             renderPositions();
+            updateWalletDisplay();
+
+            alert(`Trade placed: ${selectedSide.toUpperCase()} ${stake.toFixed(0)} SC at ${priceCents}¢.`);
         }
 
         function renderPositions() {
@@ -1173,9 +1390,6 @@
 
             renderPositions();
             resetSelectionUI();
-
-            document.getElementById("choiceMessage").innerText =
-                "Portfolio positions reset. Wallet balance kept.";
         }
 
         function resetWalletForTesting() {
@@ -1186,9 +1400,6 @@
             }
 
             setWalletBalance(STARTING_BALANCE);
-
-            document.getElementById("choiceMessage").innerText =
-                "Wallet reset to " + STARTING_BALANCE + " SC.";
         }
 
         loadCourses();

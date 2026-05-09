@@ -10,22 +10,33 @@
         }
 
         :root {
-            --bg: #080b12;
-            --panel: #111827;
-            --panel-light: #172033;
-            --border: #263247;
+            --bg: #070816;
+            --panel: rgba(15, 23, 42, 0.88);
+            --panel-solid: #111827;
+            --border: rgba(148, 163, 184, 0.24);
             --muted: #94a3b8;
             --text: #f8fafc;
-            --yellow: #facc15;
+
+            --pink: #ec4899;
+            --purple: #8b5cf6;
+            --blue: #38bdf8;
+            --cyan: #22d3ee;
             --green: #22c55e;
+            --lime: #a3e635;
+            --yellow: #facc15;
+            --orange: #fb923c;
             --red: #ef4444;
         }
 
         body {
             margin: 0;
             font-family: Arial, Helvetica, sans-serif;
-            background: var(--bg);
-            color: white;
+            background:
+                radial-gradient(circle at top left, rgba(236, 72, 153, 0.26), transparent 34%),
+                radial-gradient(circle at top right, rgba(56, 189, 248, 0.24), transparent 34%),
+                radial-gradient(circle at bottom, rgba(139, 92, 246, 0.24), transparent 36%),
+                var(--bg);
+            color: var(--text);
             overflow-x: hidden;
         }
 
@@ -36,26 +47,33 @@
         }
 
         .top-shell {
-            background: #0f172a;
-            border-bottom: 1px solid #334155;
-            padding: 16px 24px 18px;
+            background: rgba(2, 6, 23, 0.68);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 22px 16px;
+            backdrop-filter: blur(16px);
+            box-shadow: 0 18px 50px rgba(0, 0, 0, 0.25);
         }
 
         .nav-bar {
-            max-width: 1180px;
-            margin: 0 auto 16px;
+            max-width: 1220px;
+            margin: 0 auto 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgba(17, 24, 39, 0.85);
+            background: rgba(15, 23, 42, 0.76);
             border: 1px solid var(--border);
-            border-radius: 18px;
+            border-radius: 22px;
             padding: 12px 16px;
         }
 
         .brand {
             font-size: 20px;
-            font-weight: 800;
+            font-weight: 950;
+            letter-spacing: -0.03em;
+        }
+
+        .brand span {
+            color: var(--yellow);
         }
 
         .nav-links {
@@ -64,38 +82,88 @@
         }
 
         .nav-links a {
-            color: var(--muted);
+            color: #cbd5e1;
             text-decoration: none;
             padding: 9px 14px;
             border-radius: 999px;
-            font-weight: 700;
+            font-weight: 850;
             font-size: 14px;
         }
 
         .nav-links a.active {
-            color: white;
-            background: var(--panel-light);
-            border: 1px solid var(--border);
+            color: #020617;
+            background: linear-gradient(135deg, var(--yellow), var(--orange));
         }
 
         .nav-links a:hover {
             color: white;
-            background: #1f2937;
+            background: rgba(255, 255, 255, 0.10);
         }
 
-        .top-bar {
-            text-align: center;
+        .hud {
+            max-width: 1220px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1.2fr 0.95fr;
+            gap: 14px;
+            align-items: stretch;
         }
 
-        .top-bar h1 {
+        .title-card {
+            background:
+                linear-gradient(135deg, rgba(236, 72, 153, 0.18), rgba(56, 189, 248, 0.12)),
+                rgba(15, 23, 42, 0.74);
+            border: 1px solid var(--border);
+            border-radius: 26px;
+            padding: 18px 20px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .title-card::after {
+            content: "";
+            position: absolute;
+            width: 180px;
+            height: 180px;
+            right: -80px;
+            top: -90px;
+            border-radius: 999px;
+            background: rgba(250, 204, 21, 0.18);
+            filter: blur(6px);
+        }
+
+        .title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            gap: 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .title-card h1 {
             margin: 0;
             font-size: 34px;
+            line-height: 1;
+            letter-spacing: -0.05em;
+        }
+
+        .score-chip {
+            background: rgba(255, 255, 255, 0.10);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 999px;
+            padding: 8px 13px;
+            font-size: 14px;
+            font-weight: 950;
+            white-space: nowrap;
+            color: #e0f2fe;
         }
 
         .question-clear {
-            margin: 12px auto 0;
-            max-width: 900px;
-            font-size: 18px;
+            position: relative;
+            z-index: 1;
+            margin-top: 12px;
+            font-size: 17px;
             line-height: 1.45;
             color: #e5e7eb;
         }
@@ -104,164 +172,369 @@
             color: var(--yellow);
         }
 
-        .stats-row {
-            margin-top: 12px;
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 12px;
+        .game-meter {
+            background:
+                linear-gradient(135deg, rgba(34, 211, 238, 0.10), rgba(236, 72, 153, 0.10)),
+                rgba(15, 23, 42, 0.82);
+            border: 1px solid var(--border);
+            border-radius: 26px;
+            padding: 16px;
+            position: relative;
+            overflow: hidden;
         }
 
-        .stat-pill {
-            background: #111827;
-            border: 1px solid #334155;
+        .game-meter::before {
+            content: "";
+            position: absolute;
+            width: 160px;
+            height: 160px;
+            right: -70px;
+            bottom: -90px;
             border-radius: 999px;
-            padding: 8px 14px;
-            font-size: 15px;
-            font-weight: 800;
+            background: rgba(34, 197, 94, 0.20);
+            filter: blur(7px);
         }
 
-        .wallet-pill {
+        .meter-top {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .coin-badge {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(135deg, rgba(250, 204, 21, 0.22), rgba(251, 146, 60, 0.12));
+            border: 1px solid rgba(250, 204, 21, 0.32);
+            border-radius: 999px;
+            padding: 10px 14px;
+            font-weight: 950;
             color: #fde68a;
+            box-shadow: 0 0 26px rgba(250, 204, 21, 0.16);
+            white-space: nowrap;
         }
 
-        .multiplier-pill {
-            color: #bbf7d0;
+        .coin-icon {
+            width: 28px;
+            height: 28px;
+            display: grid;
+            place-items: center;
+            border-radius: 999px;
+            color: #713f12;
+            background: linear-gradient(135deg, #fde68a, #f59e0b);
+            box-shadow: 0 0 18px rgba(250, 204, 21, 0.42);
+        }
+
+        .meter-reset {
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            background: rgba(255, 255, 255, 0.08);
+            color: #e5e7eb;
+            border-radius: 999px;
+            padding: 9px 12px;
+            font-size: 13px;
+            font-weight: 950;
+            transition: transform 0.15s ease, background 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .meter-reset:hover {
+            transform: translateY(-1px);
+            background: rgba(255, 255, 255, 0.16);
+        }
+
+        .meter-main {
+            position: relative;
+            z-index: 1;
+        }
+
+        .meter-label-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: end;
+            gap: 12px;
+            margin-bottom: 9px;
+        }
+
+        .meter-label {
+            color: #cbd5e1;
+            font-size: 12px;
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 0.09em;
+        }
+
+        .streak-big {
+            font-size: 24px;
+            font-weight: 950;
+            color: #f9a8d4;
+            letter-spacing: -0.05em;
+        }
+
+        .streak-big span {
+            color: white;
+            font-size: 13px;
+            letter-spacing: 0;
+            margin-left: 4px;
+        }
+
+        .power-track {
+            height: 18px;
+            background: rgba(2, 6, 23, 0.68);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 999px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.32);
+        }
+
+        .power-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 999px;
+            background:
+                linear-gradient(90deg, var(--green), var(--yellow), var(--orange), var(--pink));
+            box-shadow: 0 0 24px rgba(250, 204, 21, 0.45);
+            transition: width 0.35s ease;
+        }
+
+        .power-glint {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+            width: 35%;
+            animation: glint 2.3s infinite linear;
+            opacity: 0.75;
+        }
+
+        @keyframes glint {
+            from { transform: translateX(-120%); }
+            to { transform: translateX(330%); }
+        }
+
+        .meter-bottom {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .meter-mini {
+            background: rgba(2, 6, 23, 0.38);
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            border-radius: 16px;
+            padding: 10px 12px;
+        }
+
+        .mini-label {
+            color: var(--muted);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-weight: 950;
+            margin-bottom: 4px;
+        }
+
+        .mini-value {
+            font-size: 22px;
+            font-weight: 950;
+            letter-spacing: -0.05em;
+        }
+
+        .mini-value.reward {
+            color: #86efac;
+        }
+
+        .mini-value.risk {
+            color: #fca5a5;
         }
 
         .preload-status {
-            margin-top: 8px;
+            max-width: 1220px;
+            margin: 9px auto 0;
             font-size: 13px;
-            color: #94a3b8;
+            color: #a5b4fc;
+            text-align: right;
         }
 
         .cards {
             flex: 1;
             display: grid;
             grid-template-columns: 1fr 1fr;
+            min-height: 560px;
         }
 
         .card {
             position: relative;
-            padding: 40px;
+            padding: 42px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             text-align: center;
-            min-height: 520px;
             overflow: hidden;
         }
 
+        .card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at 25% 20%, rgba(255, 255, 255, 0.22), transparent 26%),
+                radial-gradient(circle at 80% 75%, rgba(255, 255, 255, 0.14), transparent 30%);
+            pointer-events: none;
+        }
+
         .left-card {
-            background: linear-gradient(135deg, #2563eb, #1e3a8a);
+            background:
+                linear-gradient(135deg, rgba(59, 130, 246, 0.88), rgba(79, 70, 229, 0.96)),
+                #1d4ed8;
         }
 
         .right-card {
-            background: linear-gradient(135deg, #dc2626, #7f1d1d);
+            background:
+                linear-gradient(135deg, rgba(236, 72, 153, 0.88), rgba(220, 38, 38, 0.96)),
+                #be123c;
+        }
+
+        .card-content {
+            position: relative;
+            z-index: 1;
         }
 
         .course-code {
-            font-size: 44px;
-            font-weight: bold;
+            font-size: 52px;
+            font-weight: 950;
             margin-bottom: 12px;
+            letter-spacing: -0.06em;
+            text-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
         }
 
         .course-name {
             font-size: 22px;
-            margin-bottom: 16px;
+            margin: 0 auto 16px;
             line-height: 1.35;
+            max-width: 560px;
+            color: rgba(255, 255, 255, 0.92);
         }
 
         .offering {
-            font-size: 18px;
+            display: inline-block;
+            font-size: 16px;
             color: #e5e7eb;
             margin-bottom: 28px;
+            background: rgba(0, 0, 0, 0.18);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 999px;
+            padding: 9px 14px;
+            font-weight: 800;
         }
 
         .answer-label {
-            font-size: 20px;
+            font-size: 18px;
             margin-bottom: 10px;
             color: #fef3c7;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
         }
 
         .percent,
         .hidden-percent {
-            font-size: 78px;
-            font-weight: bold;
-            margin: 16px 0;
+            font-size: 88px;
+            font-weight: 950;
+            margin: 12px 0;
+            letter-spacing: -0.08em;
+            text-shadow: 0 14px 38px rgba(0, 0, 0, 0.30);
         }
 
         .buttons {
             display: flex;
             justify-content: center;
             gap: 16px;
-            margin-top: 24px;
+            margin-top: 28px;
         }
 
-        button {
+        .choice-button {
             cursor: pointer;
             border: none;
-            padding: 16px 28px;
+            padding: 17px 34px;
             border-radius: 999px;
-            font-size: 18px;
-            font-weight: bold;
-            color: white;
-            background: #111827;
-            border: 2px solid white;
-            transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
-        }
-
-        button:hover {
+            font-size: 20px;
+            font-weight: 950;
+            color: #020617;
             background: white;
-            color: #111827;
-            transform: translateY(-2px) scale(1.03);
+            box-shadow: 0 14px 34px rgba(0, 0, 0, 0.25);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
         }
 
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+        .choice-button:hover {
+            transform: translateY(-3px) scale(1.04);
+            box-shadow: 0 20px 44px rgba(0, 0, 0, 0.32);
+        }
+
+        .choice-button.higher {
+            background: linear-gradient(135deg, #bbf7d0, #22c55e);
+        }
+
+        .choice-button.lower {
+            background: linear-gradient(135deg, #fecaca, #fb7185);
         }
 
         .message {
-            min-height: 54px;
-            margin-top: 24px;
-            font-size: 24px;
-            font-weight: bold;
+            min-height: 88px;
+            margin-top: 26px;
+            font-size: 25px;
+            font-weight: 950;
             line-height: 1.35;
         }
 
         .loading {
-            padding: 30px;
+            padding: 34px;
             text-align: center;
             font-size: 22px;
             color: var(--yellow);
+            font-weight: 900;
         }
 
         .next-button {
-            margin-top: 20px;
-            background: #16a34a;
-            border-color: #16a34a;
+            cursor: pointer;
+            border: none;
+            margin-top: 18px;
+            padding: 17px 32px;
+            border-radius: 999px;
+            font-size: 19px;
+            font-weight: 950;
+            color: #052e16;
+            background: linear-gradient(135deg, #bef264, #22c55e);
+            box-shadow: 0 16px 38px rgba(34, 197, 94, 0.35);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
         }
 
         .next-button:hover {
-            background: white;
-            color: #16a34a;
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: 0 20px 46px rgba(34, 197, 94, 0.45);
         }
 
         .correct-pop {
             animation: pop 0.7s ease;
             color: #bbf7d0;
-            text-shadow: 0 0 18px rgba(34, 197, 94, 0.9);
+            text-shadow: 0 0 22px rgba(34, 197, 94, 0.9);
         }
 
         .wrong-shake {
             animation: shake 0.45s ease;
             color: #fecaca;
+            text-shadow: 0 0 22px rgba(239, 68, 68, 0.65);
         }
 
         .winner-card {
             animation: winnerPulse 0.9s ease;
-            box-shadow: inset 0 0 90px rgba(250, 204, 21, 0.45);
+            box-shadow: inset 0 0 110px rgba(250, 204, 21, 0.58);
         }
 
         .percent-reveal {
@@ -278,71 +551,43 @@
         }
 
         @keyframes pop {
-            0% {
-                transform: scale(0.4);
-                opacity: 0;
-            }
-            50% {
-                transform: scale(1.25);
-                opacity: 1;
-            }
-            100% {
-                transform: scale(1);
-            }
+            0% { transform: scale(0.4); opacity: 0; }
+            50% { transform: scale(1.25); opacity: 1; }
+            100% { transform: scale(1); }
         }
 
         @keyframes shake {
-            0%, 100% {
-                transform: translateX(0);
-            }
-            20% {
-                transform: translateX(-10px);
-            }
-            40% {
-                transform: translateX(10px);
-            }
-            60% {
-                transform: translateX(-8px);
-            }
-            80% {
-                transform: translateX(8px);
-            }
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-10px); }
+            40% { transform: translateX(10px); }
+            60% { transform: translateX(-8px); }
+            80% { transform: translateX(8px); }
         }
 
         @keyframes winnerPulse {
-            0% {
-                transform: scale(1);
-            }
-            45% {
-                transform: scale(1.035);
-            }
-            100% {
-                transform: scale(1);
-            }
+            0% { transform: scale(1); }
+            45% { transform: scale(1.025); }
+            100% { transform: scale(1); }
         }
 
         @keyframes revealPercent {
-            0% {
-                transform: scale(0.3) rotate(-8deg);
-                opacity: 0;
-            }
-            60% {
-                transform: scale(1.2) rotate(3deg);
-                opacity: 1;
-            }
-            100% {
-                transform: scale(1) rotate(0);
-            }
+            0% { transform: scale(0.3) rotate(-8deg); opacity: 0; }
+            60% { transform: scale(1.2) rotate(3deg); opacity: 1; }
+            100% { transform: scale(1) rotate(0); }
         }
 
         @keyframes confettiFall {
-            0% {
-                transform: translateY(0) rotate(0deg);
-                opacity: 1;
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+        }
+
+        @media (max-width: 980px) {
+            .hud {
+                grid-template-columns: 1fr;
             }
-            100% {
-                transform: translateY(110vh) rotate(720deg);
-                opacity: 0;
+
+            .preload-status {
+                text-align: center;
             }
         }
 
@@ -361,21 +606,53 @@
             }
 
             .card {
-                min-height: 420px;
+                min-height: 430px;
                 padding: 28px;
             }
 
             .course-code {
-                font-size: 34px;
+                font-size: 38px;
+            }
+
+            .course-name {
+                font-size: 19px;
             }
 
             .percent,
             .hidden-percent {
-                font-size: 58px;
+                font-size: 64px;
             }
 
             .question-clear {
                 font-size: 16px;
+            }
+
+            .message {
+                font-size: 20px;
+            }
+
+            .buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .choice-button {
+                width: min(280px, 100%);
+            }
+        }
+
+        @media (max-width: 560px) {
+            .meter-top {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .meter-bottom {
+                grid-template-columns: 1fr;
+            }
+
+            .title-row {
+                flex-direction: column;
             }
         }
     </style>
@@ -385,29 +662,67 @@
     <div class="game">
         <div class="top-shell">
             <div class="nav-bar">
-                <div class="brand">SECaT Markets</div>
+                <div class="brand">SECaT <span>Arcade</span></div>
                 <div class="nav-links">
                     <a href="/" class="active">Higher or Lower</a>
                     <a href="/prediction">Prediction Market</a>
                 </div>
             </div>
 
-            <div class="top-bar">
-                <h1>SECaT Higher or Lower</h1>
+            <div class="hud">
+                <div class="title-card">
+                    <div class="title-row">
+                        <h1>Higher or Lower</h1>
+                        <div class="score-chip" id="score">0 / 0</div>
+                    </div>
 
-                <div class="question-clear" id="questionText">
-                    Loading question...
+                    <div class="question-clear" id="questionText">
+                        Loading question...
+                    </div>
                 </div>
 
-                <div class="stats-row">
-                    <div class="stat-pill" id="score">Score: 0 / 0</div>
-                    <div class="stat-pill wallet-pill">Wallet: <span class="wallet-balance">0 SC</span></div>
-                    <div class="stat-pill">Streak: <span id="streakValue">0</span></div>
-                    <div class="stat-pill multiplier-pill">Multiplier: <span id="multiplierValue">x1.00</span></div>
-                </div>
+                <div class="game-meter">
+                    <div class="meter-top">
+                        <div class="coin-badge">
+                            <div class="coin-icon">🪙</div>
+                            <div class="wallet-balance">0 SC</div>
+                        </div>
 
-                <div class="preload-status" id="preloadStatus"></div>
+                        <button class="meter-reset" onclick="resetStreak()" title="Reset streak and load a new round">
+                            Reset Risk ↻
+                        </button>
+                    </div>
+
+                    <div class="meter-main">
+                        <div class="meter-label-row">
+                            <div>
+                                <div class="meter-label">Streak Power</div>
+                                <div class="streak-big"><span id="streakValue">0</span><span>streak</span></div>
+                            </div>
+                            <div class="meter-label" id="meterStatus">Safe Mode</div>
+                        </div>
+
+                        <div class="power-track">
+                            <div class="power-fill" id="powerFill"></div>
+                            <div class="power-glint"></div>
+                        </div>
+
+                        <div class="meter-bottom">
+                            <div class="meter-mini">
+                                <div class="mini-label">Next win</div>
+                                <div class="mini-value reward" id="nextRewardValue">+50 SC</div>
+                            </div>
+
+                            <div class="meter-mini">
+                                <div class="mini-label">If wrong</div>
+                                <div class="mini-value risk" id="nextLossValue">-15 SC</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            <div class="preload-status" id="preloadStatus"></div>
         </div>
 
         <div id="loading" class="loading">
@@ -416,39 +731,43 @@
 
         <div class="cards" id="cards" style="display: none;">
             <div class="card left-card" id="leftCard">
-                <div class="course-code" id="leftCode"></div>
-                <div class="course-name" id="leftName"></div>
-                <div class="offering" id="leftOffering"></div>
+                <div class="card-content">
+                    <div class="course-code" id="leftCode"></div>
+                    <div class="course-name" id="leftName"></div>
+                    <div class="offering" id="leftOffering"></div>
 
-                <div class="answer-label">had</div>
-                <div class="percent" id="leftPercent"></div>
-                <div class="answer-label" id="leftAnswer"></div>
+                    <div class="answer-label">Had</div>
+                    <div class="percent" id="leftPercent"></div>
+                    <div class="answer-label" id="leftAnswer"></div>
+                </div>
             </div>
 
             <div class="card right-card" id="rightCard">
-                <div class="course-code" id="rightCode"></div>
-                <div class="course-name" id="rightName"></div>
-                <div class="offering" id="rightOffering"></div>
+                <div class="card-content">
+                    <div class="course-code" id="rightCode"></div>
+                    <div class="course-name" id="rightName"></div>
+                    <div class="offering" id="rightOffering"></div>
 
-                <div class="answer-label">had</div>
-                <div class="hidden-percent" id="rightPercent">?</div>
-                <div class="answer-label" id="rightAnswer"></div>
+                    <div class="answer-label">Had</div>
+                    <div class="hidden-percent" id="rightPercent">?</div>
+                    <div class="answer-label" id="rightAnswer"></div>
 
-                <div class="buttons" id="choiceButtons">
-                    <button onclick="makeGuess('higher')">Higher</button>
-                    <button onclick="makeGuess('lower')">Lower</button>
+                    <div class="buttons" id="choiceButtons">
+                        <button class="choice-button higher" onclick="makeGuess('higher')">Higher</button>
+                        <button class="choice-button lower" onclick="makeGuess('lower')">Lower</button>
+                    </div>
+
+                    <div class="message" id="message"></div>
+
+                    <button
+                        class="next-button"
+                        id="nextButton"
+                        onclick="loadRound()"
+                        style="display: none;"
+                    >
+                        Next Round
+                    </button>
                 </div>
-
-                <div class="message" id="message"></div>
-
-                <button
-                    class="next-button"
-                    id="nextButton"
-                    onclick="loadRound()"
-                    style="display: none;"
-                >
-                    Next Round
-                </button>
             </div>
         </div>
     </div>
@@ -458,9 +777,13 @@
         const STARTING_BALANCE = 500;
 
         const BASE_WIN_REWARD = 50;
-        const BASE_LOSS_PENALTY = 25;
+        const BASE_LOSS_PENALTY = 15;
+
         const MULTIPLIER_STEP = 0.25;
         const MAX_MULTIPLIER = 5;
+
+        const LOSS_STREAK_STEP = 0.25;
+        const MAX_LOSS_MULTIPLIER = 4;
 
         let currentRound = null;
         let nextRoundPromise = null;
@@ -493,17 +816,6 @@
             setWalletBalance(current + amount);
         }
 
-        function spendCoins(amount) {
-            const current = getWalletBalance();
-
-            if (amount > current) {
-                return false;
-            }
-
-            setWalletBalance(current - amount);
-            return true;
-        }
-
         function updateWalletDisplay() {
             const walletElements = document.querySelectorAll(".wallet-balance");
 
@@ -519,10 +831,88 @@
             );
         }
 
-        function updateMultiplierDisplay() {
+        function getLossMultiplier() {
+            return Math.min(
+                MAX_LOSS_MULTIPLIER,
+                1 + currentStreak * LOSS_STREAK_STEP
+            );
+        }
+
+        function getCurrentReward() {
+            return Math.round(BASE_WIN_REWARD * getCurrentMultiplier());
+        }
+
+        function getCurrentLossPenalty() {
+            return Math.round(BASE_LOSS_PENALTY * getLossMultiplier());
+        }
+
+        function getPowerPercent() {
+            const multiplier = getCurrentMultiplier();
+            return Math.min(100, ((multiplier - 1) / (MAX_MULTIPLIER - 1)) * 100);
+        }
+
+        function getMeterStatus() {
+            if (currentStreak === 0) {
+                return "Safe Mode";
+            }
+
+            if (currentStreak < 3) {
+                return "Warming Up";
+            }
+
+            if (currentStreak < 7) {
+                return "Hot Streak";
+            }
+
+            if (currentStreak < 12) {
+                return "Danger Zone";
+            }
+
+            return "Max Risk";
+        }
+
+        function updateHud() {
             document.getElementById("streakValue").innerText = currentStreak;
-            document.getElementById("multiplierValue").innerText =
-                "x" + getCurrentMultiplier().toFixed(2);
+
+            document.getElementById("nextRewardValue").innerText =
+                "+" + getCurrentReward() + " SC";
+
+            document.getElementById("nextLossValue").innerText =
+                "-" + getCurrentLossPenalty() + " SC";
+
+            document.getElementById("powerFill").style.width =
+                getPowerPercent() + "%";
+
+            document.getElementById("meterStatus").innerText =
+                getMeterStatus();
+
+            updateWalletDisplay();
+        }
+
+        function resetStreak() {
+            const message = document.getElementById("message");
+
+            if (currentStreak === 0) {
+                message.innerText = "Risk already reset. Loading a fresh round...";
+                loadRound();
+                return;
+            }
+
+            const confirmed = confirm(
+                "Reset your streak and load a new round? This lowers both your reward and your risk."
+            );
+
+            if (!confirmed) {
+                return;
+            }
+
+            currentStreak = 0;
+            updateHud();
+
+            message.innerText =
+                "Risk reset. Loading a fresh round...";
+
+            loadRound();
         }
 
         async function fetchRound() {
@@ -540,7 +930,7 @@
             nextRoundData = null;
 
             document.getElementById("preloadStatus").innerText =
-                "Preparing next round in the background...";
+                "Preparing next round...";
 
             nextRoundPromise = fetchRound()
                 .then(data => {
@@ -651,30 +1041,31 @@
                 document.getElementById("rightCard").classList.add("winner-card");
             }
 
-            const multiplier = getCurrentMultiplier();
-
             if (wasCorrect) {
-                const reward = Math.round(BASE_WIN_REWARD * multiplier);
+                const reward = getCurrentReward();
+                const rewardMultiplier = getCurrentMultiplier();
 
                 score += 1;
                 addCoins(reward);
 
                 message.innerHTML =
                     `Correct! +${reward} SC<br>` +
-                    `Multiplier used: x${multiplier.toFixed(2)}`;
+                    `Streak power paid x${rewardMultiplier.toFixed(2)}.`;
 
                 message.classList.add("correct-pop");
 
                 currentStreak += 1;
                 launchConfetti();
             } else {
-                const penalty = Math.round(BASE_LOSS_PENALTY * multiplier);
+                const penalty = getCurrentLossPenalty();
+                const lossMultiplier = getLossMultiplier();
+                const lostStreak = currentStreak;
 
                 addCoins(-penalty);
 
                 message.innerHTML =
                     `Wrong! It was ${correctAnswer}. -${penalty} SC<br>` +
-                    `Your streak was reset.`;
+                    `Risk x${lossMultiplier.toFixed(2)} from streak ${lostStreak}.`;
 
                 message.classList.add("wrong-shake");
 
@@ -682,10 +1073,9 @@
             }
 
             document.getElementById("score").innerText =
-                "Score: " + score + " / " + roundsPlayed;
+                score + " / " + roundsPlayed;
 
-            updateWalletDisplay();
-            updateMultiplierDisplay();
+            updateHud();
 
             document.getElementById("choiceButtons").style.display = "none";
             document.getElementById("nextButton").style.display = "inline-block";
@@ -715,16 +1105,16 @@
         }
 
         function launchConfetti() {
-            const emojis = ["🎉", "✨", "⭐", "🔥", "💯", "🎊"];
+            const emojis = ["🎉", "✨", "⭐", "🔥", "💯", "🎊", "🪙", "🚀"];
 
-            for (let i = 0; i < 36; i++) {
+            for (let i = 0; i < 42; i++) {
                 const piece = document.createElement("div");
 
                 piece.className = "confetti-piece";
                 piece.innerText = emojis[Math.floor(Math.random() * emojis.length)];
                 piece.style.left = Math.random() * 100 + "vw";
                 piece.style.animationDelay = Math.random() * 0.25 + "s";
-                piece.style.fontSize = (18 + Math.random() * 18) + "px";
+                piece.style.fontSize = (18 + Math.random() * 20) + "px";
 
                 document.body.appendChild(piece);
 
@@ -734,8 +1124,7 @@
             }
         }
 
-        updateWalletDisplay();
-        updateMultiplierDisplay();
+        updateHud();
         loadRound();
     </script>
 </body>
