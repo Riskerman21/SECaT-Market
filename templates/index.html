@@ -17,6 +17,8 @@
             --muted: #94a3b8;
             --text: #f8fafc;
             --yellow: #facc15;
+            --green: #22c55e;
+            --red: #ef4444;
         }
 
         body {
@@ -99,17 +101,36 @@
         }
 
         .question-clear strong {
-            color: #facc15;
+            color: var(--yellow);
         }
 
-        .score {
-            margin-top: 10px;
-            font-size: 20px;
-            font-weight: bold;
+        .stats-row {
+            margin-top: 12px;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .stat-pill {
+            background: #111827;
+            border: 1px solid #334155;
+            border-radius: 999px;
+            padding: 8px 14px;
+            font-size: 15px;
+            font-weight: 800;
+        }
+
+        .wallet-pill {
+            color: #fde68a;
+        }
+
+        .multiplier-pill {
+            color: #bbf7d0;
         }
 
         .preload-status {
-            margin-top: 6px;
+            margin-top: 8px;
             font-size: 13px;
             color: #94a3b8;
         }
@@ -202,17 +223,18 @@
         }
 
         .message {
-            min-height: 44px;
+            min-height: 54px;
             margin-top: 24px;
-            font-size: 28px;
+            font-size: 24px;
             font-weight: bold;
+            line-height: 1.35;
         }
 
         .loading {
             padding: 30px;
             text-align: center;
             font-size: 22px;
-            color: #facc15;
+            color: var(--yellow);
         }
 
         .next-button {
@@ -377,7 +399,13 @@
                     Loading question...
                 </div>
 
-                <div class="score" id="score">Score: 0</div>
+                <div class="stats-row">
+                    <div class="stat-pill" id="score">Score: 0 / 0</div>
+                    <div class="stat-pill wallet-pill">Wallet: <span class="wallet-balance">0 SC</span></div>
+                    <div class="stat-pill">Streak: <span id="streakValue">0</span></div>
+                    <div class="stat-pill multiplier-pill">Multiplier: <span id="multiplierValue">x1.00</span></div>
+                </div>
+
                 <div class="preload-status" id="preloadStatus"></div>
             </div>
         </div>
@@ -426,13 +454,76 @@
     </div>
 
     <script>
+        const WALLET_KEY = "secat_coin_balance";
+        const STARTING_BALANCE = 500;
+
+        const BASE_WIN_REWARD = 50;
+        const BASE_LOSS_PENALTY = 25;
+        const MULTIPLIER_STEP = 0.25;
+        const MAX_MULTIPLIER = 5;
+
         let currentRound = null;
         let nextRoundPromise = null;
         let nextRoundData = null;
 
         let score = 0;
         let roundsPlayed = 0;
+        let currentStreak = 0;
         let gameOver = false;
+
+        function getWalletBalance() {
+            const stored = localStorage.getItem(WALLET_KEY);
+
+            if (stored === null) {
+                localStorage.setItem(WALLET_KEY, STARTING_BALANCE);
+                return STARTING_BALANCE;
+            }
+
+            return Number(stored);
+        }
+
+        function setWalletBalance(amount) {
+            const safeAmount = Math.max(0, Math.round(amount));
+            localStorage.setItem(WALLET_KEY, safeAmount);
+            updateWalletDisplay();
+        }
+
+        function addCoins(amount) {
+            const current = getWalletBalance();
+            setWalletBalance(current + amount);
+        }
+
+        function spendCoins(amount) {
+            const current = getWalletBalance();
+
+            if (amount > current) {
+                return false;
+            }
+
+            setWalletBalance(current - amount);
+            return true;
+        }
+
+        function updateWalletDisplay() {
+            const walletElements = document.querySelectorAll(".wallet-balance");
+
+            walletElements.forEach(element => {
+                element.innerText = getWalletBalance() + " SC";
+            });
+        }
+
+        function getCurrentMultiplier() {
+            return Math.min(
+                MAX_MULTIPLIER,
+                1 + currentStreak * MULTIPLIER_STEP
+            );
+        }
+
+        function updateMultiplierDisplay() {
+            document.getElementById("streakValue").innerText = currentStreak;
+            document.getElementById("multiplierValue").innerText =
+                "x" + getCurrentMultiplier().toFixed(2);
+        }
 
         async function fetchRound() {
             const response = await fetch("/api/round");
@@ -518,30 +609,19 @@
                 `Which course offering had a <strong>higher percentage</strong> of students who selected ` +
                 `<strong>${data.answer_option}</strong> for <strong>${data.question_name}</strong>?`;
 
-            document.getElementById("leftCode").innerText =
-                data.left.course;
-
-            document.getElementById("leftName").innerText =
-                data.left.name;
-
+            document.getElementById("leftCode").innerText = data.left.course;
+            document.getElementById("leftName").innerText = data.left.name;
             document.getElementById("leftOffering").innerText =
                 data.left.label.replace(data.left.course + ": ", "");
-
             document.getElementById("leftPercent").innerText =
                 data.left.percent + "%";
-
             document.getElementById("leftAnswer").innerText =
                 data.answer_option;
 
-            document.getElementById("rightCode").innerText =
-                data.right.course;
-
-            document.getElementById("rightName").innerText =
-                data.right.name;
-
+            document.getElementById("rightCode").innerText = data.right.course;
+            document.getElementById("rightName").innerText = data.right.name;
             document.getElementById("rightOffering").innerText =
                 data.right.label.replace(data.right.course + ": ", "");
-
             document.getElementById("rightAnswer").innerText =
                 data.answer_option;
         }
@@ -571,18 +651,41 @@
                 document.getElementById("rightCard").classList.add("winner-card");
             }
 
+            const multiplier = getCurrentMultiplier();
+
             if (wasCorrect) {
+                const reward = Math.round(BASE_WIN_REWARD * multiplier);
+
                 score += 1;
-                message.innerText = "Correct!";
+                addCoins(reward);
+
+                message.innerHTML =
+                    `Correct! +${reward} SC<br>` +
+                    `Multiplier used: x${multiplier.toFixed(2)}`;
+
                 message.classList.add("correct-pop");
+
+                currentStreak += 1;
                 launchConfetti();
             } else {
-                message.innerText = "Wrong! It was " + correctAnswer + ".";
+                const penalty = Math.round(BASE_LOSS_PENALTY * multiplier);
+
+                addCoins(-penalty);
+
+                message.innerHTML =
+                    `Wrong! It was ${correctAnswer}. -${penalty} SC<br>` +
+                    `Your streak was reset.`;
+
                 message.classList.add("wrong-shake");
+
+                currentStreak = 0;
             }
 
             document.getElementById("score").innerText =
                 "Score: " + score + " / " + roundsPlayed;
+
+            updateWalletDisplay();
+            updateMultiplierDisplay();
 
             document.getElementById("choiceButtons").style.display = "none";
             document.getElementById("nextButton").style.display = "inline-block";
@@ -631,6 +734,8 @@
             }
         }
 
+        updateWalletDisplay();
+        updateMultiplierDisplay();
         loadRound();
     </script>
 </body>

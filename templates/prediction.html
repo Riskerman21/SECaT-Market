@@ -17,9 +17,7 @@
             --muted: #94a3b8;
             --text: #f8fafc;
             --green: #22c55e;
-            --green-soft: rgba(34, 197, 94, 0.12);
             --red: #ef4444;
-            --red-soft: rgba(239, 68, 68, 0.12);
             --blue: #3b82f6;
             --yellow: #facc15;
         }
@@ -53,7 +51,6 @@
             border-radius: 18px;
             padding: 14px 18px;
             margin-bottom: 24px;
-            backdrop-filter: blur(12px);
         }
 
         .brand {
@@ -81,11 +78,6 @@
             border: 1px solid var(--border);
         }
 
-        .nav-links a:hover {
-            color: white;
-            background: #1f2937;
-        }
-
         .hero {
             margin-bottom: 24px;
         }
@@ -93,7 +85,6 @@
         .hero h1 {
             margin: 0 0 8px;
             font-size: 42px;
-            letter-spacing: -1px;
         }
 
         .hero p {
@@ -156,15 +147,19 @@
             padding: 22px;
         }
 
-        .question-box {
+        .question-box,
+        .upcoming-box,
+        .chart-card,
+        .history {
             background: #0b1220;
             border: 1px solid var(--border);
             border-radius: 18px;
-            padding: 20px;
+            padding: 18px;
             margin-bottom: 18px;
         }
 
-        .question-label {
+        .question-label,
+        .upcoming-title {
             color: var(--muted);
             font-size: 13px;
             font-weight: 800;
@@ -181,23 +176,6 @@
 
         .market-question strong {
             color: var(--yellow);
-        }
-
-        .upcoming-box {
-            background: rgba(59, 130, 246, 0.10);
-            border: 1px solid rgba(59, 130, 246, 0.28);
-            border-radius: 18px;
-            padding: 18px;
-            margin-bottom: 18px;
-        }
-
-        .upcoming-title {
-            color: #bfdbfe;
-            font-size: 14px;
-            font-weight: 900;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
         }
 
         .upcoming-main {
@@ -301,19 +279,6 @@
             line-height: 1.4;
         }
 
-        .chart-card {
-            background: #0b1220;
-            border: 1px solid var(--border);
-            border-radius: 18px;
-            padding: 18px;
-            margin-top: 18px;
-        }
-
-        .chart-title {
-            font-weight: 900;
-            margin-bottom: 14px;
-        }
-
         .mini-chart {
             height: 150px;
             display: flex;
@@ -338,26 +303,12 @@
             border-radius: 10px 10px 4px 4px;
             background: linear-gradient(180deg, #60a5fa, #2563eb);
             min-height: 4px;
-            transition: height 0.4s ease;
         }
 
         .bar-label {
             color: var(--muted);
             font-size: 11px;
             text-align: center;
-        }
-
-        .history {
-            margin-top: 18px;
-            background: #0b1220;
-            border: 1px solid var(--border);
-            border-radius: 18px;
-            padding: 18px;
-        }
-
-        .history h2 {
-            margin: 0 0 14px;
-            font-size: 18px;
         }
 
         .history-row {
@@ -416,12 +367,6 @@
             color: white;
             font-size: 15px;
             outline: none;
-        }
-
-        select:focus,
-        input:focus {
-            border-color: var(--blue);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.16);
         }
 
         .button-row {
@@ -506,7 +451,8 @@
             font-weight: 900;
         }
 
-        .trade-summary {
+        .trade-summary,
+        .positions {
             margin-top: 16px;
             background: #0b1220;
             border: 1px solid var(--border);
@@ -540,14 +486,6 @@
             color: var(--yellow);
             margin-top: 12px;
             font-weight: 800;
-        }
-
-        .positions {
-            margin-top: 18px;
-            background: #0b1220;
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 14px;
         }
 
         .positions h3 {
@@ -610,10 +548,7 @@
                 font-size: 32px;
             }
 
-            .market-header {
-                grid-template-columns: 1fr;
-            }
-
+            .market-header,
             .market-stats,
             .outcome-grid,
             .wallet,
@@ -643,8 +578,8 @@
             <div class="hero">
                 <h1>Prediction Market</h1>
                 <p>
-                    Pick a course, pick a SECaT question, and take a fake position on whether
-                    the next result will finish above or below the model prediction.
+                    Earn SECaT Coins in Higher or Lower, then use them to buy fake positions
+                    on future SECaT results.
                 </p>
             </div>
 
@@ -708,7 +643,7 @@
                         </div>
 
                         <div class="chart-card">
-                            <div class="chart-title">Previous semester trend</div>
+                            <div class="question-label">Previous semester trend</div>
                             <div class="mini-chart" id="miniChart"></div>
                         </div>
 
@@ -756,8 +691,8 @@
 
                     <div class="wallet">
                         <div class="wallet-card">
-                            <div class="wallet-label">Fake balance</div>
-                            <div class="wallet-value" id="balanceValue">$1,000</div>
+                            <div class="wallet-label">SECaT Coins</div>
+                            <div class="wallet-value wallet-balance" id="balanceValue">0 SC</div>
                         </div>
                         <div class="wallet-card">
                             <div class="wallet-label">Selected side</div>
@@ -775,7 +710,7 @@
                     </div>
 
                     <div class="selector-box">
-                        <label for="stakeInput">Stake</label>
+                        <label for="stakeInput">Stake in SECaT Coins</label>
                         <input
                             id="stakeInput"
                             type="number"
@@ -813,6 +748,10 @@
                         Reset Portfolio
                     </button>
 
+                    <button class="secondary-btn" onclick="resetWalletForTesting()">
+                        Reset Wallet to 500 SC
+                    </button>
+
                     <div class="message" id="choiceMessage"></div>
 
                     <div class="positions">
@@ -825,10 +764,48 @@
     </div>
 
     <script>
+        const WALLET_KEY = "secat_coin_balance";
+        const STARTING_BALANCE = 500;
+
         let currentMarket = null;
         let selectedSide = null;
-        let balance = 1000;
         let positions = [];
+
+        function getWalletBalance() {
+            const stored = localStorage.getItem(WALLET_KEY);
+
+            if (stored === null) {
+                localStorage.setItem(WALLET_KEY, STARTING_BALANCE);
+                return STARTING_BALANCE;
+            }
+
+            return Number(stored);
+        }
+
+        function setWalletBalance(amount) {
+            const safeAmount = Math.max(0, Math.round(amount));
+            localStorage.setItem(WALLET_KEY, safeAmount);
+            updateWalletDisplay();
+        }
+
+        function spendCoins(amount) {
+            const current = getWalletBalance();
+
+            if (amount > current) {
+                return false;
+            }
+
+            setWalletBalance(current - amount);
+            return true;
+        }
+
+        function updateWalletDisplay() {
+            const walletElements = document.querySelectorAll(".wallet-balance");
+
+            walletElements.forEach(element => {
+                element.innerText = getWalletBalance() + " SC";
+            });
+        }
 
         async function loadCourses() {
             const select = document.getElementById("courseSelect");
@@ -870,12 +847,6 @@
                 return;
             }
 
-            if (!questionNum) {
-                document.getElementById("choiceMessage").innerText =
-                    "Choose a question first.";
-                return;
-            }
-
             selectedSide = null;
             resetSelectionUI();
 
@@ -907,7 +878,6 @@
 
                 document.getElementById("loading").style.display = "none";
                 document.getElementById("marketCard").style.display = "block";
-                document.getElementById("marketCard").classList.add("fade-in");
 
                 document.getElementById("higherButton").disabled = false;
                 document.getElementById("lowerButton").disabled = false;
@@ -932,7 +902,6 @@
 
             document.getElementById("courseCode").innerText = market.course;
             document.getElementById("courseName").innerText = market.name;
-
             document.getElementById("marketBadge").innerText = upcomingLabel;
 
             document.getElementById("marketQuestion").innerHTML =
@@ -1039,7 +1008,6 @@
             }
 
             selectedSide = side;
-
             resetSelectionUI();
 
             if (side === "higher") {
@@ -1099,10 +1067,10 @@
                 shares.toFixed(2);
 
             document.getElementById("potentialPayout").innerText =
-                "$" + payout.toFixed(2);
+                payout.toFixed(2) + " SC";
 
             document.getElementById("potentialProfit").innerText =
-                "$" + profit.toFixed(2);
+                profit.toFixed(2) + " SC";
         }
 
         function placeTrade() {
@@ -1111,6 +1079,7 @@
             }
 
             const stake = Number(document.getElementById("stakeInput").value || 0);
+            const currentBalance = getWalletBalance();
 
             if (stake <= 0) {
                 document.getElementById("choiceMessage").innerText =
@@ -1118,9 +1087,9 @@
                 return;
             }
 
-            if (stake > balance) {
+            if (stake > currentBalance) {
                 document.getElementById("choiceMessage").innerText =
-                    "Not enough fake balance.";
+                    "Not enough SECaT Coins. Play Higher or Lower to earn more.";
                 return;
             }
 
@@ -1130,7 +1099,13 @@
             const price = priceCents / 100;
             const shares = stake / price;
 
-            balance -= stake;
+            const spent = spendCoins(stake);
+
+            if (!spent) {
+                document.getElementById("choiceMessage").innerText =
+                    "Not enough SECaT Coins.";
+                return;
+            }
 
             positions.push({
                 course: currentMarket.course,
@@ -1145,15 +1120,10 @@
             });
 
             document.getElementById("choiceMessage").innerText =
-                `Trade placed: ${selectedSide.toUpperCase()} $${stake.toFixed(2)} at ${priceCents}¢.`;
+                `Trade placed: ${selectedSide.toUpperCase()} ${stake.toFixed(0)} SC at ${priceCents}¢.`;
 
-            updateWallet();
+            updateWalletDisplay();
             renderPositions();
-        }
-
-        function updateWallet() {
-            document.getElementById("balanceValue").innerText =
-                "$" + balance.toFixed(0);
         }
 
         function renderPositions() {
@@ -1180,7 +1150,7 @@
                     <br>
                     <span>${position.upcoming}</span>
                     <br>
-                    Stake: $${position.stake.toFixed(2)}
+                    Stake: ${position.stake.toFixed(0)} SC
                     · Price: ${position.priceCents}¢
                     · Shares: ${position.shares.toFixed(2)}
                 `;
@@ -1190,20 +1160,39 @@
         }
 
         function resetPortfolio() {
-            balance = 1000;
+            const confirmed = confirm(
+                "Reset portfolio positions? This will not reset your SECaT Coins wallet."
+            );
+
+            if (!confirmed) {
+                return;
+            }
+
             positions = [];
             selectedSide = null;
 
-            updateWallet();
             renderPositions();
             resetSelectionUI();
 
             document.getElementById("choiceMessage").innerText =
-                "Portfolio reset.";
+                "Portfolio positions reset. Wallet balance kept.";
+        }
+
+        function resetWalletForTesting() {
+            const confirmed = confirm("Reset wallet to 500 SC?");
+
+            if (!confirmed) {
+                return;
+            }
+
+            setWalletBalance(STARTING_BALANCE);
+
+            document.getElementById("choiceMessage").innerText =
+                "Wallet reset to " + STARTING_BALANCE + " SC.";
         }
 
         loadCourses();
-        updateWallet();
+        updateWalletDisplay();
         renderPositions();
     </script>
 </body>
