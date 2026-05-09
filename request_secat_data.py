@@ -9,13 +9,6 @@ def getCourseData(courseCode: str, sem:int, year: int):
 
         page.on("response", lambda r: r)
 
-    def get_course_data(letter, course, course_code, course_code_semester_descr):
-        page.click(f"text={letter}")
-        page.click(f"text={course}")
-        page.click(f"text={course_code}")
-        page.click(f"text={course_code_semester_descr}")
-        return page.content()
-
         page.click(f"text={courseCode[:1]}")
         page.click(f"text={courseCode[:4]}")
         page.click(f"text={courseCode}")
