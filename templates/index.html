@@ -712,24 +712,52 @@
             document.getElementById("rightAnswer").innerText = cleanAnswer;
         }
 
-        function makeGuess(guess) {
-            if (gameOver || currentRound === null) return;
+        async function makeGuess(guess) {
+            if (gameOver || currentRound === null) {
+                return;
+            }
 
             gameOver = true;
-            roundsPlayed += 1;
 
             const correctAnswer = currentRound.correct_answer;
             const wasCorrect = guess === correctAnswer;
 
             const rightPercent = document.getElementById("rightPercent");
             const message = document.getElementById("message");
+            const choiceButtons = document.getElementById("choiceButtons");
+            const nextButton = document.getElementById("nextButton");
 
-            rightPercent.innerText = currentRound.right.percent + "%";
+            choiceButtons.style.display = "none";
+            nextButton.style.display = "none";
+
+            message.classList.remove("correct-pop");
+            message.classList.remove("wrong-shake");
+
+
+            message.innerHTML = "Revealing result...";
             rightPercent.classList.add("percent-reveal");
 
+            await animateNumberCountUp(
+                rightPercent,
+                currentRound.right.percent,
+                1700
+            );
+
+            await wait(350);
+
+            roundsPlayed += 1;
+
             const winningSide = getWinningSide();
-            if (winningSide === "left") document.getElementById("leftCard").classList.add("winner-card");
-            if (winningSide === "right") document.getElementById("rightCard").classList.add("winner-card");
+
+            if (winningSide === "left") {
+                document.getElementById("leftCard").classList.add("winner-card");
+            }
+
+            if (winningSide === "right") {
+                document.getElementById("rightCard").classList.add("winner-card");
+            }
+
+            await wait(450);
 
             if (wasCorrect) {
                 const reward = getCurrentReward();
@@ -740,15 +768,26 @@
                 addCoinsToLeaderboard(reward);
                 unlockAchievement("first_win");
 
-                message.innerHTML = `Correct! +${reward} SC<br>Streak power paid x${rewardMultiplier.toFixed(2)}.`;
+                message.innerHTML =
+                    `Correct! +${reward} SC<br>` +
+                    `Streak power paid x${rewardMultiplier.toFixed(2)}.`;
+
                 message.classList.add("correct-pop");
 
                 currentStreak += 1;
                 updateBestStreak(currentStreak);
 
-                if (currentStreak >= 3) unlockAchievement("streak_3");
-                if (currentStreak >= 5) unlockAchievement("streak_5");
-                if (currentStreak >= 10) unlockAchievement("streak_10");
+                if (currentStreak >= 3) {
+                    unlockAchievement("streak_3");
+                }
+
+                if (currentStreak >= 5) {
+                    unlockAchievement("streak_5");
+                }
+
+                if (currentStreak >= 10) {
+                    unlockAchievement("streak_10");
+                }
 
                 checkWalletAchievements();
                 launchConfetti();
@@ -759,7 +798,10 @@
 
                 addCoins(-penalty);
 
-                message.innerHTML = `Wrong! It was ${correctAnswer}. -${penalty} SC<br>Risk x${lossMultiplier.toFixed(2)} from streak ${lostStreak}.`;
+                message.innerHTML =
+                    `Wrong! It was ${correctAnswer}. -${penalty} SC<br>` +
+                    `Risk x${lossMultiplier.toFixed(2)} from streak ${lostStreak}.`;
+
                 message.classList.add("wrong-shake");
 
                 currentStreak = 0;
@@ -768,9 +810,42 @@
             document.getElementById("score").innerText = score + " / " + roundsPlayed;
             updateHud();
 
-            document.getElementById("choiceButtons").style.display = "none";
-            document.getElementById("nextButton").style.display = "inline-block";
+            nextButton.style.display = "inline-block";
         }
+
+        function wait(milliseconds) {
+            return new Promise(resolve => {
+                setTimeout(resolve, milliseconds);
+            });
+        }
+
+        function animateNumberCountUp(element, targetValue, duration = 1400) {
+            return new Promise(resolve => {
+                const startTime = performance.now();
+                const target = Number(targetValue);
+
+                function update(currentTime) {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+
+                    // Ease-out effect: fast at first, slower near the end
+                    const easedProgress = 1 - Math.pow(1 - progress, 3);
+
+                    const currentValue = target * easedProgress;
+                    element.innerText = currentValue.toFixed(2) + "%";
+
+                    if (progress < 1) {
+                        requestAnimationFrame(update);
+                    } else {
+                        element.innerText = target.toFixed(2) + "%";
+                        resolve();
+                    }
+                }
+
+                requestAnimationFrame(update);
+            });
+        }
+
 
         function getWinningSide() {
             const left = currentRound.left.percent;
