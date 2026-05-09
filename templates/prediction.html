@@ -1,1661 +1,1041 @@
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
     <title>SECaT Prediction Market</title>
 
     <style>
-
         * {
-
             box-sizing: border-box;
-
         }
 
         :root {
-
             --bg: #080b12;
-
             --panel: #111827;
-
             --panel-light: #172033;
-
             --border: #263247;
-
             --muted: #94a3b8;
-
             --text: #f8fafc;
-
             --green: #22c55e;
-
             --green-soft: rgba(34, 197, 94, 0.12);
-
             --red: #ef4444;
-
             --red-soft: rgba(239, 68, 68, 0.12);
-
             --blue: #3b82f6;
-
             --yellow: #facc15;
-
         }
 
         body {
-
             margin: 0;
-
             font-family: Arial, Helvetica, sans-serif;
-
             background:
-
                 radial-gradient(circle at top left, rgba(59, 130, 246, 0.18), transparent 34%),
-
                 radial-gradient(circle at top right, rgba(34, 197, 94, 0.12), transparent 30%),
-
                 var(--bg);
-
             color: var(--text);
-
         }
 
         .page {
-
             min-height: 100vh;
-
             padding: 24px;
-
         }
 
         .container {
-
             max-width: 1180px;
-
             margin: 0 auto;
-
         }
 
         .nav-bar {
-
             display: flex;
-
             justify-content: space-between;
-
             align-items: center;
-
             background: rgba(17, 24, 39, 0.85);
-
             border: 1px solid var(--border);
-
             border-radius: 18px;
-
             padding: 14px 18px;
-
             margin-bottom: 24px;
-
             backdrop-filter: blur(12px);
-
         }
 
         .brand {
-
             font-size: 20px;
-
             font-weight: 800;
-
         }
 
         .nav-links {
-
             display: flex;
-
             gap: 10px;
-
         }
 
         .nav-links a {
-
             color: var(--muted);
-
             text-decoration: none;
-
             padding: 9px 14px;
-
             border-radius: 999px;
-
             font-weight: 700;
-
             font-size: 14px;
-
         }
 
         .nav-links a.active {
-
             color: white;
-
             background: var(--panel-light);
-
             border: 1px solid var(--border);
-
         }
 
         .nav-links a:hover {
-
             color: white;
-
             background: #1f2937;
-
         }
 
         .hero {
-
             margin-bottom: 24px;
-
         }
 
         .hero h1 {
-
             margin: 0 0 8px;
-
             font-size: 42px;
-
             letter-spacing: -1px;
-
         }
 
         .hero p {
-
             margin: 0;
-
             color: var(--muted);
-
             font-size: 17px;
-
             line-height: 1.45;
-
         }
 
         .layout {
-
             display: grid;
-
             grid-template-columns: 1fr 380px;
-
             gap: 20px;
-
         }
 
         .panel {
-
             background: rgba(17, 24, 39, 0.92);
-
             border: 1px solid var(--border);
-
             border-radius: 22px;
-
             box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
-
         }
 
         .market-panel {
-
             overflow: hidden;
-
         }
 
         .market-header {
-
             padding: 22px;
-
             border-bottom: 1px solid var(--border);
-
             display: grid;
-
             grid-template-columns: 1fr auto;
-
             gap: 16px;
-
             align-items: start;
-
         }
 
         .course-code {
-
             font-size: 34px;
-
             font-weight: 900;
-
             margin-bottom: 4px;
-
         }
 
         .course-name {
-
             color: #cbd5e1;
-
             font-size: 18px;
-
             line-height: 1.35;
-
         }
 
         .market-badge {
-
             background: rgba(59, 130, 246, 0.14);
-
             color: #bfdbfe;
-
             border: 1px solid rgba(59, 130, 246, 0.35);
-
             padding: 8px 12px;
-
             border-radius: 999px;
-
             font-size: 13px;
-
             font-weight: 800;
-
             white-space: nowrap;
-
         }
 
         .market-body {
-
             padding: 22px;
-
         }
 
         .question-box {
-
             background: #0b1220;
-
             border: 1px solid var(--border);
-
             border-radius: 18px;
-
             padding: 20px;
-
             margin-bottom: 18px;
-
         }
 
         .question-label {
-
             color: var(--muted);
-
             font-size: 13px;
-
             font-weight: 800;
-
             text-transform: uppercase;
-
             letter-spacing: 0.08em;
-
             margin-bottom: 10px;
-
         }
 
         .market-question {
-
             font-size: 25px;
-
             line-height: 1.35;
-
             font-weight: 850;
-
         }
 
         .market-question strong {
-
             color: var(--yellow);
-
         }
 
         .upcoming-box {
-
             background: rgba(59, 130, 246, 0.10);
-
             border: 1px solid rgba(59, 130, 246, 0.28);
-
             border-radius: 18px;
-
             padding: 18px;
-
             margin-bottom: 18px;
-
         }
 
         .upcoming-title {
-
             color: #bfdbfe;
-
             font-size: 14px;
-
             font-weight: 900;
-
             margin-bottom: 8px;
-
             text-transform: uppercase;
-
             letter-spacing: 0.05em;
-
         }
 
         .upcoming-main {
-
             font-size: 20px;
-
             font-weight: 900;
-
             margin-bottom: 6px;
-
         }
 
         .upcoming-reason {
-
             color: #cbd5e1;
-
             font-size: 14px;
-
             line-height: 1.45;
-
         }
 
         .market-stats {
-
             display: grid;
-
             grid-template-columns: repeat(3, 1fr);
-
             gap: 12px;
-
             margin-bottom: 20px;
-
         }
 
         .stat {
-
             background: #0b1220;
-
             border: 1px solid var(--border);
-
             border-radius: 16px;
-
             padding: 16px;
-
         }
 
         .stat-label {
-
             color: var(--muted);
-
             font-size: 13px;
-
             margin-bottom: 8px;
-
         }
 
         .stat-value {
-
             font-size: 24px;
-
             font-weight: 900;
-
         }
 
         .outcome-grid {
-
             display: grid;
-
             grid-template-columns: 1fr 1fr;
-
             gap: 14px;
-
             margin-bottom: 20px;
-
         }
 
         .outcome-card {
-
             border-radius: 20px;
-
             padding: 20px;
-
             border: 1px solid var(--border);
-
             background: #0b1220;
-
             cursor: pointer;
-
             transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
-
         }
 
         .outcome-card:hover {
-
             transform: translateY(-2px);
-
         }
 
         .outcome-card.selected {
-
             box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.18);
-
             border-color: var(--yellow);
-
         }
 
         .outcome-card.higher {
-
             background: linear-gradient(135deg, rgba(34, 197, 94, 0.14), #0b1220 56%);
-
         }
 
         .outcome-card.lower {
-
             background: linear-gradient(135deg, rgba(239, 68, 68, 0.14), #0b1220 56%);
-
         }
 
         .outcome-top {
-
             display: flex;
-
             justify-content: space-between;
-
             align-items: center;
-
             margin-bottom: 18px;
-
         }
 
         .outcome-name {
-
             font-size: 22px;
-
             font-weight: 900;
-
         }
 
         .outcome-price {
-
             font-size: 34px;
-
             font-weight: 900;
-
         }
 
         .higher .outcome-price {
-
             color: var(--green);
-
         }
 
         .lower .outcome-price {
-
             color: var(--red);
-
         }
 
         .outcome-sub {
-
             color: var(--muted);
-
             font-size: 14px;
-
             line-height: 1.4;
-
         }
 
         .chart-card {
-
             background: #0b1220;
-
             border: 1px solid var(--border);
-
             border-radius: 18px;
-
             padding: 18px;
-
             margin-top: 18px;
-
         }
 
         .chart-title {
-
             font-weight: 900;
-
             margin-bottom: 14px;
-
         }
 
         .mini-chart {
-
             height: 150px;
-
             display: flex;
-
             align-items: end;
-
             gap: 10px;
-
             padding-top: 10px;
-
         }
 
         .bar-wrap {
-
             flex: 1;
-
             display: flex;
-
             flex-direction: column;
-
             justify-content: end;
-
             align-items: center;
-
             gap: 8px;
-
             height: 100%;
-
         }
 
         .bar {
-
             width: 100%;
-
             max-width: 46px;
-
             border-radius: 10px 10px 4px 4px;
-
             background: linear-gradient(180deg, #60a5fa, #2563eb);
-
             min-height: 4px;
-
             transition: height 0.4s ease;
-
         }
 
         .bar-label {
-
             color: var(--muted);
-
             font-size: 11px;
-
             text-align: center;
-
         }
 
         .history {
-
             margin-top: 18px;
-
             background: #0b1220;
-
             border: 1px solid var(--border);
-
             border-radius: 18px;
-
             padding: 18px;
-
         }
 
         .history h2 {
-
             margin: 0 0 14px;
-
             font-size: 18px;
-
         }
 
         .history-row {
-
             display: grid;
-
             grid-template-columns: 1.5fr 0.6fr 0.6fr;
-
             gap: 12px;
-
             padding: 12px 0;
-
             border-bottom: 1px solid rgba(226, 232, 240, 0.12);
-
             font-size: 14px;
-
             align-items: center;
-
         }
 
         .history-row:last-child {
-
             border-bottom: none;
-
         }
 
         .history-percent {
-
             font-weight: 900;
-
             color: #bfdbfe;
-
         }
 
         .trade-panel {
-
             padding: 18px;
-
             position: sticky;
-
             top: 20px;
-
             align-self: start;
-
         }
 
         .trade-title {
-
             font-size: 22px;
-
             font-weight: 900;
-
             margin-bottom: 14px;
-
         }
 
         .selector-box {
-
             margin-bottom: 16px;
-
         }
 
         label {
-
             display: block;
-
             margin-bottom: 8px;
-
             font-size: 13px;
-
             font-weight: 900;
-
             color: #cbd5e1;
-
             text-transform: uppercase;
-
             letter-spacing: 0.05em;
-
         }
 
         select,
-
         input {
-
             width: 100%;
-
             padding: 13px 14px;
-
             border-radius: 12px;
-
             border: 1px solid var(--border);
-
             background: #0b1220;
-
             color: white;
-
             font-size: 15px;
-
             outline: none;
-
         }
 
         select:focus,
-
         input:focus {
-
             border-color: var(--blue);
-
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.16);
-
         }
 
         .button-row {
-
             display: grid;
-
             grid-template-columns: 1fr 1fr;
-
             gap: 10px;
-
             margin-bottom: 14px;
-
         }
 
         button {
-
             cursor: pointer;
-
             border: none;
-
             border-radius: 12px;
-
             padding: 13px 14px;
-
             font-size: 15px;
-
             font-weight: 900;
-
             color: white;
-
             transition: transform 0.15s ease, opacity 0.15s ease;
-
         }
 
         button:hover {
-
             transform: translateY(-1px);
-
         }
 
         button:disabled {
-
             opacity: 0.45;
-
             cursor: not-allowed;
-
             transform: none;
-
         }
 
         .primary-btn {
-
             width: 100%;
-
             background: var(--blue);
-
             margin-top: 4px;
-
         }
 
         .higher-btn {
-
             background: var(--green);
-
         }
 
         .lower-btn {
-
             background: var(--red);
-
         }
 
         .secondary-btn {
-
             width: 100%;
-
             background: #1f2937;
-
             color: #cbd5e1;
-
             margin-top: 10px;
-
         }
 
         .selected-higher {
-
             box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25);
-
         }
 
         .selected-lower {
-
             box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25);
-
         }
 
         .wallet {
-
             display: grid;
-
             grid-template-columns: 1fr 1fr;
-
             gap: 10px;
-
             margin-bottom: 16px;
-
         }
 
         .wallet-card {
-
             background: #0b1220;
-
             border: 1px solid var(--border);
-
             border-radius: 14px;
-
             padding: 12px;
-
         }
 
         .wallet-label {
-
             color: var(--muted);
-
             font-size: 12px;
-
             margin-bottom: 6px;
-
         }
 
         .wallet-value {
-
             font-size: 20px;
-
             font-weight: 900;
-
         }
 
         .trade-summary {
-
             margin-top: 16px;
-
             background: #0b1220;
-
             border: 1px solid var(--border);
-
             border-radius: 16px;
-
             padding: 14px;
-
         }
 
         .summary-row {
-
             display: flex;
-
             justify-content: space-between;
-
             color: #cbd5e1;
-
             font-size: 14px;
-
             padding: 7px 0;
-
         }
 
         .summary-row strong {
-
             color: white;
-
         }
 
         .message {
-
             margin-top: 14px;
-
             min-height: 24px;
-
             font-size: 15px;
-
             font-weight: 800;
-
             color: #bbf7d0;
-
             line-height: 1.4;
-
         }
 
         .loading {
-
             display: none;
-
             color: var(--yellow);
-
             margin-top: 12px;
-
             font-weight: 800;
-
         }
 
         .positions {
-
             margin-top: 18px;
-
             background: #0b1220;
-
             border: 1px solid var(--border);
-
             border-radius: 16px;
-
             padding: 14px;
-
         }
 
         .positions h3 {
-
             margin: 0 0 10px;
-
             font-size: 16px;
-
         }
 
         .position-item {
-
             border-top: 1px solid rgba(226, 232, 240, 0.12);
-
             padding: 10px 0;
-
             font-size: 14px;
-
             color: #cbd5e1;
-
         }
 
         .position-item:first-of-type {
-
             border-top: none;
-
         }
 
         .empty {
-
             color: var(--muted);
-
             font-size: 14px;
-
         }
 
         .fade-in {
-
             animation: fadeIn 0.35s ease;
-
         }
 
         @keyframes fadeIn {
-
             from {
-
                 opacity: 0;
-
                 transform: translateY(8px);
-
             }
-
             to {
-
                 opacity: 1;
-
                 transform: translateY(0);
-
             }
-
         }
 
         @media (max-width: 940px) {
-
             .layout {
-
                 grid-template-columns: 1fr;
-
             }
 
             .trade-panel {
-
                 position: static;
-
             }
-
         }
 
         @media (max-width: 640px) {
-
             .page {
-
                 padding: 14px;
-
             }
 
             .nav-bar {
-
                 flex-direction: column;
-
                 gap: 12px;
-
             }
 
             .hero h1 {
-
                 font-size: 32px;
-
             }
 
             .market-header {
-
                 grid-template-columns: 1fr;
-
             }
 
             .market-stats,
-
             .outcome-grid,
-
             .wallet,
-
             .button-row {
-
                 grid-template-columns: 1fr;
-
             }
 
             .history-row {
-
                 grid-template-columns: 1fr;
-
                 gap: 4px;
-
             }
-
         }
-
     </style>
-
 </head>
 
 <body>
-
     <div class="page">
-
         <div class="container">
-
             <div class="nav-bar">
-
                 <div class="brand">SECaT Markets</div>
-
                 <div class="nav-links">
-
                     <a href="/">Higher or Lower</a>
-
                     <a href="/prediction" class="active">Prediction Market</a>
-
                 </div>
-
             </div>
 
             <div class="hero">
-
                 <h1>Prediction Market</h1>
-
                 <p>
-
-                    Pick a course, inspect the market price, and take a fake position on whether
-
-                    the next SECaT result will finish above or below the model prediction.
-
+                    Pick a course, pick a SECaT question, and take a fake position on whether
+                    the next result will finish above or below the model prediction.
                 </p>
-
             </div>
 
             <div class="layout">
-
                 <main class="panel market-panel" id="marketCard" style="display: none;">
-
                     <div class="market-header">
-
                         <div>
-
                             <div class="course-code" id="courseCode">---</div>
-
-                            <div class="course-name" id="courseName">Choose a course to build a market.</div>
-
+                            <div class="course-name" id="courseName">Choose a course and question to build a market.</div>
                         </div>
-
                         <div class="market-badge" id="marketBadge">Upcoming semester</div>
-
                     </div>
 
                     <div class="market-body">
-
                         <div class="question-box">
-
                             <div class="question-label">Market question</div>
-
                             <div class="market-question" id="marketQuestion"></div>
-
                         </div>
 
                         <div class="upcoming-box">
-
                             <div class="upcoming-title">Upcoming offering guess</div>
-
                             <div class="upcoming-main" id="upcomingGuessMain">--</div>
-
                             <div class="upcoming-reason" id="upcomingGuessReason">--</div>
-
                         </div>
 
                         <div class="market-stats">
-
                             <div class="stat">
-
                                 <div class="stat-label">Initial prediction</div>
-
                                 <div class="stat-value" id="predictionValue">--%</div>
-
                             </div>
-
                             <div class="stat">
-
                                 <div class="stat-label">Confidence</div>
-
                                 <div class="stat-value" id="confidenceValue">--</div>
-
                             </div>
-
                             <div class="stat">
-
                                 <div class="stat-label">History used</div>
-
                                 <div class="stat-value" id="historyCount">--</div>
-
                             </div>
-
                         </div>
 
                         <div class="outcome-grid">
-
                             <div class="outcome-card higher" id="higherCard" onclick="selectSide('higher')">
-
                                 <div class="outcome-top">
-
                                     <div class="outcome-name">Higher</div>
-
                                     <div class="outcome-price" id="higherPrice">--¢</div>
-
                                 </div>
-
                                 <div class="outcome-sub">
-
                                     Pays if the final result is above the initial prediction.
-
                                 </div>
-
                             </div>
 
                             <div class="outcome-card lower" id="lowerCard" onclick="selectSide('lower')">
-
                                 <div class="outcome-top">
-
                                     <div class="outcome-name">Lower</div>
-
                                     <div class="outcome-price" id="lowerPrice">--¢</div>
-
                                 </div>
-
                                 <div class="outcome-sub">
-
                                     Pays if the final result is below the initial prediction.
-
                                 </div>
-
                             </div>
-
                         </div>
 
                         <div class="chart-card">
-
                             <div class="chart-title">Previous semester trend</div>
-
                             <div class="mini-chart" id="miniChart"></div>
-
                         </div>
 
                         <div class="history">
-
                             <h2>Historical SECaT data used by the market</h2>
-
                             <div id="historyList"></div>
-
                         </div>
-
                     </div>
-
                 </main>
 
                 <aside class="panel trade-panel">
-
                     <div class="trade-title">Trade Ticket</div>
 
                     <div class="selector-box">
-
                         <label for="courseSelect">Course</label>
-
                         <select id="courseSelect">
-
                             <option value="">Loading courses...</option>
-
                         </select>
-
-                    </div>
-
-                    <button class="primary-btn" onclick="loadMarket()">Build Market</button>
-
-                    <div class="loading" id="loading">Building market from cached SECaT data...</div>
-
-                    <div class="wallet">
-
-                        <div class="wallet-card">
-
-                            <div class="wallet-label">Fake balance</div>
-
-                            <div class="wallet-value" id="balanceValue">$1,000</div>
-
-                        </div>
-
-                        <div class="wallet-card">
-
-                            <div class="wallet-label">Selected side</div>
-
-                            <div class="wallet-value" id="selectedSideValue">--</div>
-
-                        </div>
-
-                    </div>
-
-                    <div class="button-row">
-
-                        <button class="higher-btn" id="higherButton" onclick="selectSide('higher')" disabled>
-
-                            Buy Higher
-
-                        </button>
-
-                        <button class="lower-btn" id="lowerButton" onclick="selectSide('lower')" disabled>
-
-                            Buy Lower
-
-                        </button>
-
                     </div>
 
                     <div class="selector-box">
+                        <label for="questionSelect">Question</label>
+                        <select id="questionSelect">
+                            <option value="1">Q1: Understand Aims &amp; Goals</option>
+                            <option value="2">Q2: Intellectually Stimulating</option>
+                            <option value="3">Q3: Well Structured</option>
+                            <option value="4">Q4: Learning Materials Assisted</option>
+                            <option value="5">Q5: Assessment Reqs Clear</option>
+                            <option value="6">Q6: Received Helpful Feedback</option>
+                            <option value="7">Q7: Learned a lot</option>
+                            <option value="8">Q8: Overall Rating</option>
+                        </select>
+                    </div>
 
+                    <div class="selector-box">
+                        <label for="answerSelect">Prediction target</label>
+                        <select id="answerSelect">
+                            <option value="1">1 Strongly Agree</option>
+                            <option value="4">4 Disagree</option>
+                        </select>
+                    </div>
+
+                    <button class="primary-btn" onclick="loadMarket()">Build Market</button>
+                    <div class="loading" id="loading">Building market from cached SECaT data...</div>
+
+                    <div class="wallet">
+                        <div class="wallet-card">
+                            <div class="wallet-label">Fake balance</div>
+                            <div class="wallet-value" id="balanceValue">$1,000</div>
+                        </div>
+                        <div class="wallet-card">
+                            <div class="wallet-label">Selected side</div>
+                            <div class="wallet-value" id="selectedSideValue">--</div>
+                        </div>
+                    </div>
+
+                    <div class="button-row">
+                        <button class="higher-btn" id="higherButton" onclick="selectSide('higher')" disabled>
+                            Buy Higher
+                        </button>
+                        <button class="lower-btn" id="lowerButton" onclick="selectSide('lower')" disabled>
+                            Buy Lower
+                        </button>
+                    </div>
+
+                    <div class="selector-box">
                         <label for="stakeInput">Stake</label>
-
                         <input
-
                             id="stakeInput"
-
                             type="number"
-
                             min="1"
-
                             step="1"
-
                             value="100"
-
                             oninput="updateTradeSummary()"
-
                         >
-
                     </div>
 
                     <div class="trade-summary">
-
                         <div class="summary-row">
-
                             <span>Market price</span>
-
                             <strong id="selectedPrice">--</strong>
-
                         </div>
-
                         <div class="summary-row">
-
                             <span>Estimated shares</span>
-
                             <strong id="estimatedShares">--</strong>
-
                         </div>
-
                         <div class="summary-row">
-
                             <span>Potential payout</span>
-
                             <strong id="potentialPayout">--</strong>
-
                         </div>
-
                         <div class="summary-row">
-
                             <span>Potential profit</span>
-
                             <strong id="potentialProfit">--</strong>
-
                         </div>
-
                     </div>
 
                     <button class="primary-btn" id="placeTradeButton" onclick="placeTrade()" disabled>
-
                         Place Fake Trade
-
                     </button>
 
                     <button class="secondary-btn" onclick="resetPortfolio()">
-
                         Reset Portfolio
-
                     </button>
 
                     <div class="message" id="choiceMessage"></div>
 
                     <div class="positions">
-
                         <h3>Open Positions</h3>
-
                         <div id="positionsList" class="empty">No positions yet.</div>
-
                     </div>
-
                 </aside>
-
             </div>
-
         </div>
-
     </div>
 
     <script>
-
         let currentMarket = null;
-
         let selectedSide = null;
-
         let balance = 1000;
-
         let positions = [];
 
         async function loadCourses() {
-
             const select = document.getElementById("courseSelect");
 
             try {
-
                 const response = await fetch("/api/courses");
-
                 const data = await response.json();
 
                 select.innerHTML = "";
 
+                const placeholder = document.createElement("option");
+                placeholder.value = "";
+                placeholder.innerText = "Choose a course";
+                select.appendChild(placeholder);
+
                 data.courses.forEach(course => {
-
                     const option = document.createElement("option");
-
                     option.value = course.code;
-
                     option.innerText = course.display;
-
                     select.appendChild(option);
-
                 });
-
             } catch (error) {
-
                 select.innerHTML = "";
-
                 const option = document.createElement("option");
-
                 option.value = "";
-
                 option.innerText = "Could not load courses";
-
                 select.appendChild(option);
-
             }
-
         }
 
         async function loadMarket() {
-
             const courseCode = document.getElementById("courseSelect").value;
+            const questionNum = document.getElementById("questionSelect").value;
+            const answerNum = document.getElementById("answerSelect").value;
 
             if (!courseCode) {
-
+                document.getElementById("choiceMessage").innerText =
+                    "Choose a course first.";
                 return;
+            }
 
+            if (!questionNum) {
+                document.getElementById("choiceMessage").innerText =
+                    "Choose a question first.";
+                return;
             }
 
             selectedSide = null;
-
             resetSelectionUI();
 
             document.getElementById("loading").style.display = "block";
-
-            document.getElementById("loading").innerText = "Building market from cached SECaT data...";
+            document.getElementById("loading").innerText =
+                "Building market from cached SECaT data...";
 
             document.getElementById("choiceMessage").innerText = "";
-
             document.getElementById("marketCard").style.display = "none";
 
             try {
+                const url =
+                    "/api/prediction-market" +
+                    "?course=" + encodeURIComponent(courseCode) +
+                    "&question_num=" + encodeURIComponent(questionNum) +
+                    "&answer_num=" + encodeURIComponent(answerNum);
 
-                const response = await fetch(
-
-                    "/api/prediction-market?course=" + encodeURIComponent(courseCode)
-
-                );
-
+                const response = await fetch(url);
                 const data = await response.json();
 
                 if (!response.ok || data.error) {
-
                     document.getElementById("loading").innerText =
-
                         data.error || "Could not build market.";
-
                     return;
-
                 }
 
                 currentMarket = data;
-
                 renderMarket(data);
 
                 document.getElementById("loading").style.display = "none";
-
                 document.getElementById("marketCard").style.display = "block";
-
                 document.getElementById("marketCard").classList.add("fade-in");
 
                 document.getElementById("higherButton").disabled = false;
-
                 document.getElementById("lowerButton").disabled = false;
 
                 updateTradeSummary();
 
             } catch (error) {
-
                 document.getElementById("loading").innerText =
-
                     "Something went wrong building the market.";
-
             }
-
         }
 
         function renderMarket(market) {
-
             const prediction = Number(market.initial_prediction);
-
             const higherPrice = getHigherPrice(market);
-
             const lowerPrice = 100 - higherPrice;
 
             const upcoming = market.upcoming_offering || null;
-
             const upcomingLabel = upcoming
-
                 ? upcoming.label.replace(market.course + ": ", "")
-
                 : "the next likely offering";
 
             document.getElementById("courseCode").innerText = market.course;
-
             document.getElementById("courseName").innerText = market.name;
 
             document.getElementById("marketBadge").innerText = upcomingLabel;
 
             document.getElementById("marketQuestion").innerHTML =
-
                 `Will <strong>${market.course}</strong> in <strong>${upcomingLabel}</strong> have more than ` +
-
                 `<strong>${prediction.toFixed(2)}%</strong> of students selecting ` +
-
                 `<strong>${market.answer}</strong> for <strong>${market.question_name}</strong>?`;
 
             document.getElementById("upcomingGuessMain").innerText =
-
                 upcoming ? upcoming.display : "No upcoming offering inferred";
 
             document.getElementById("upcomingGuessReason").innerText =
-
                 upcoming ? upcoming.reason : "The app could not infer the next likely semester from historical offerings.";
 
             document.getElementById("predictionValue").innerText =
-
                 prediction.toFixed(2) + "%";
 
             document.getElementById("confidenceValue").innerText =
-
                 market.confidence + "/100";
 
             document.getElementById("historyCount").innerText =
-
                 market.history_count || market.history.length;
 
             document.getElementById("higherPrice").innerText =
-
                 higherPrice + "¢";
 
             document.getElementById("lowerPrice").innerText =
-
                 lowerPrice + "¢";
 
             renderHistory(market);
-
             renderMiniChart(market);
-
         }
 
         function getHigherPrice(market) {
-
             const history = market.history;
 
             if (!history || history.length < 2) {
-
                 return 50;
-
             }
 
             const newest = Number(history[0].percent);
-
             const oldest = Number(history[history.length - 1].percent);
-
             const trend = newest - oldest;
 
             let price = 50 + trend * 1.2;
 
             const confidenceBoost = (Number(market.confidence) - 50) / 10;
-
             price += trend >= 0 ? confidenceBoost : -confidenceBoost;
 
             price = Math.max(5, Math.min(95, Math.round(price)));
 
             return price;
-
         }
 
         function renderHistory(market) {
-
             const historyList = document.getElementById("historyList");
-
             historyList.innerHTML = "";
 
             market.history.forEach(item => {
-
                 const row = document.createElement("div");
-
                 row.className = "history-row";
 
                 row.innerHTML = `
-
                     <div>${item.offering}</div>
-
                     <div class="history-percent">${Number(item.percent).toFixed(2)}%</div>
-
                     <div>${item.count}/${item.answered}</div>
-
                 `;
 
                 historyList.appendChild(row);
-
             });
-
         }
 
         function renderMiniChart(market) {
-
             const chart = document.getElementById("miniChart");
-
             chart.innerHTML = "";
 
             const history = [...market.history].reverse();
 
             history.forEach(item => {
-
                 const percent = Number(item.percent);
-
                 const year = item.year;
-
                 const sem = item.sem;
 
                 const wrap = document.createElement("div");
-
                 wrap.className = "bar-wrap";
 
                 const bar = document.createElement("div");
-
                 bar.className = "bar";
-
                 bar.style.height = Math.max(4, percent) + "%";
-
                 bar.title = percent.toFixed(2) + "%";
 
                 const label = document.createElement("div");
-
                 label.className = "bar-label";
-
                 label.innerText = `S${sem} ${year}`;
 
                 wrap.appendChild(bar);
-
                 wrap.appendChild(label);
-
                 chart.appendChild(wrap);
-
             });
-
         }
 
         function selectSide(side) {
-
             if (currentMarket === null) {
-
                 return;
-
             }
 
             selectedSide = side;
@@ -1663,265 +1043,168 @@
             resetSelectionUI();
 
             if (side === "higher") {
-
                 document.getElementById("higherCard").classList.add("selected");
-
                 document.getElementById("higherButton").classList.add("selected-higher");
-
                 document.getElementById("selectedSideValue").innerText = "Higher";
-
             } else {
-
                 document.getElementById("lowerCard").classList.add("selected");
-
                 document.getElementById("lowerButton").classList.add("selected-lower");
-
                 document.getElementById("selectedSideValue").innerText = "Lower";
-
             }
 
             document.getElementById("placeTradeButton").disabled = false;
-
             updateTradeSummary();
-
         }
 
         function resetSelectionUI() {
-
             document.getElementById("higherCard").classList.remove("selected");
-
             document.getElementById("lowerCard").classList.remove("selected");
-
             document.getElementById("higherButton").classList.remove("selected-higher");
-
             document.getElementById("lowerButton").classList.remove("selected-lower");
-
             document.getElementById("selectedSideValue").innerText = "--";
-
             document.getElementById("placeTradeButton").disabled = true;
-
             document.getElementById("selectedPrice").innerText = "--";
-
             document.getElementById("estimatedShares").innerText = "--";
-
             document.getElementById("potentialPayout").innerText = "--";
-
             document.getElementById("potentialProfit").innerText = "--";
-
         }
 
         function updateTradeSummary() {
-
             if (currentMarket === null || selectedSide === null) {
-
                 return;
-
             }
 
             const stake = Number(document.getElementById("stakeInput").value || 0);
-
             const higherPrice = getHigherPrice(currentMarket);
-
             const lowerPrice = 100 - higherPrice;
 
             const selectedPriceCents = selectedSide === "higher"
-
                 ? higherPrice
-
                 : lowerPrice;
 
             const selectedPrice = selectedPriceCents / 100;
 
             if (stake <= 0 || selectedPrice <= 0) {
-
                 return;
-
             }
 
             const shares = stake / selectedPrice;
-
             const payout = shares;
-
             const profit = payout - stake;
 
             document.getElementById("selectedPrice").innerText =
-
                 selectedPriceCents + "¢";
 
             document.getElementById("estimatedShares").innerText =
-
                 shares.toFixed(2);
 
             document.getElementById("potentialPayout").innerText =
-
                 "$" + payout.toFixed(2);
 
             document.getElementById("potentialProfit").innerText =
-
                 "$" + profit.toFixed(2);
-
         }
 
         function placeTrade() {
-
             if (currentMarket === null || selectedSide === null) {
-
                 return;
-
             }
 
             const stake = Number(document.getElementById("stakeInput").value || 0);
 
             if (stake <= 0) {
-
                 document.getElementById("choiceMessage").innerText =
-
                     "Enter a stake greater than zero.";
-
                 return;
-
             }
 
             if (stake > balance) {
-
                 document.getElementById("choiceMessage").innerText =
-
                     "Not enough fake balance.";
-
                 return;
-
             }
 
             const higherPrice = getHigherPrice(currentMarket);
-
             const lowerPrice = 100 - higherPrice;
-
             const priceCents = selectedSide === "higher" ? higherPrice : lowerPrice;
-
             const price = priceCents / 100;
-
             const shares = stake / price;
 
             balance -= stake;
 
             positions.push({
-
                 course: currentMarket.course,
-
                 question: currentMarket.question_name,
-
                 answer: currentMarket.answer,
-
                 prediction: currentMarket.initial_prediction,
-
                 upcoming: currentMarket.upcoming_offering ? currentMarket.upcoming_offering.label : "Upcoming offering",
-
                 side: selectedSide,
-
                 stake: stake,
-
                 priceCents: priceCents,
-
                 shares: shares
-
             });
 
             document.getElementById("choiceMessage").innerText =
-
                 `Trade placed: ${selectedSide.toUpperCase()} $${stake.toFixed(2)} at ${priceCents}¢.`;
 
             updateWallet();
-
             renderPositions();
-
         }
 
         function updateWallet() {
-
             document.getElementById("balanceValue").innerText =
-
                 "$" + balance.toFixed(0);
-
         }
 
         function renderPositions() {
-
             const list = document.getElementById("positionsList");
 
             if (positions.length === 0) {
-
                 list.className = "empty";
-
                 list.innerText = "No positions yet.";
-
                 return;
-
             }
 
             list.className = "";
-
             list.innerHTML = "";
 
             positions.slice().reverse().forEach(position => {
-
                 const item = document.createElement("div");
-
                 item.className = "position-item";
 
                 item.innerHTML = `
-
                     <strong>${position.course}</strong> —
-
                     ${position.side.toUpperCase()} than ${Number(position.prediction).toFixed(2)}%
-
                     <br>
-
+                    <span>${position.question}</span>
+                    <br>
                     <span>${position.upcoming}</span>
-
                     <br>
-
                     Stake: $${position.stake.toFixed(2)}
-
                     · Price: ${position.priceCents}¢
-
                     · Shares: ${position.shares.toFixed(2)}
-
                 `;
 
                 list.appendChild(item);
-
             });
-
         }
 
         function resetPortfolio() {
-
             balance = 1000;
-
             positions = [];
-
             selectedSide = null;
 
             updateWallet();
-
             renderPositions();
-
             resetSelectionUI();
 
             document.getElementById("choiceMessage").innerText =
-
                 "Portfolio reset.";
-
         }
 
         loadCourses();
-
         updateWallet();
-
         renderPositions();
-
     </script>
-
 </body>
-
 </html>

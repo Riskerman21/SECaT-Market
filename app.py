@@ -42,15 +42,21 @@ def api_courses():
 @app.route("/api/prediction-market")
 def api_prediction_market():
     selected_course = request.args.get("course")
+    question_num = request.args.get("question_num", type=int)
+    answer_num = request.args.get("answer_num", type=int)
 
     if selected_course:
-        market = create_prediction_market_for_course_code(selected_course)
+        market = create_prediction_market_for_course_code(
+            selected_course,
+            question_num=question_num,
+            answer_num=answer_num
+        )
     else:
         market = create_random_prediction_market()
 
     if market is None:
         return jsonify({
-            "error": "Could not create a prediction market for this course."
+            "error": "Could not create a prediction market for this course/question."
         }), 500
 
     return jsonify(market)

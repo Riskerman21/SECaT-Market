@@ -1,4 +1,5 @@
 import random
+import re
 import secat_cache
 
 from game import (
@@ -206,17 +207,30 @@ def predict_percentage_for_course(
     answer_num,
     max_history=5,
     before_year=None,
-    before_sem=None
+    before_sem=None,
+    previous_offerings=None
 ):
     """
     Predicts the percentage for a course/question/answer using previous offerings.
+    If previous_offerings is provided, it avoids reloading offerings again.
     """
 
-    previous_offerings = get_previous_offerings(
-        course,
-        before_year=before_year,
-        before_sem=before_sem
-    )
+    if previous_offerings is None:
+        previous_offerings = get_previous_offerings(
+            course,
+            before_year=before_year,
+            before_sem=before_sem
+        )
+    else:
+        if before_year is not None and before_sem is not None:
+            target_index = semester_index(before_sem, before_year)
+
+            previous_offerings = [
+                offering for offering in previous_offerings
+                if semester_index(offering["sem"], offering["year"]) < target_index
+            ]
+
+        previous_offerings = sort_offerings_newest_first(previous_offerings)
 
     if len(previous_offerings) == 0:
         return None
@@ -357,7 +371,8 @@ def create_prediction_market(
         answer_num,
         max_history=max_history,
         before_year=before_year,
-        before_sem=before_sem
+        before_sem=before_sem,
+        previous_offerings=all_offerings
     )
 
     if prediction_data is None:
@@ -487,12 +502,11 @@ def get_course_list():
 
 def get_questions_for_course(course_code_value):
     """
-    Optional helper.
+    Gets available question names for a selected course using the most recent
+    available offering.
 
-    Attempts to find available question names for a selected course using
-    the most recent available offering.
-
-    This can be useful later if you want the user to choose the question too.
+    This version loads the newest offering only once instead of loading it
+    once per question.
     """
 
     selected_course = None
@@ -512,25 +526,64 @@ def get_questions_for_course(course_code_value):
 
     newest_offering = offerings[0]
 
-    questions = []
+    cache_key = (
+        f"secat_data_{newest_offering['course']}"
+        f"_sem{newest_offering['sem']}"
+        f"_{newest_offering['year']}"
+    )
 
-    for question_num in range(1, 9):
-        result = get_answer_from_offering(
-            newest_offering,
-            question_num,
-            1
+    cached_course_data = secat_cache.get_cached_json(
+        cache_key,
+        secat_cache.SECAT_DATA_CACHE_SECONDS
+    )
+
+    if cached_course_data is not None:
+        print(f"[QUESTIONS CACHE HIT] {offering_display(newest_offering)}")
+        course_data = cached_course_data
+    else:
+        print(f"[QUESTIONS LOAD ONCE] {offering_display(newest_offering)}")
+
+        response = request_secat_data.getCourseData(
+            newest_offering["course"],
+            newest_offering["sem"],
+            newest_offering["year"]
         )
 
-        if result is None:
+        if response["error"] is not None:
+            print(f"[QUESTIONS ERROR] {response['error']}")
+            return []
+
+        try:
+            course_data = extract_json_data(response["data"])
+        except ValueError:
+            return []
+
+        secat_cache.set_cached_json(cache_key, course_data)
+
+    questions_by_num = {}
+
+    for item in course_data:
+        question_name = item.get("QUESTION_NAME", "")
+
+        match = re.match(r"Q(\d+):", question_name)
+
+        if not match:
             continue
 
+        question_num = int(match.group(1))
+
+        if question_num not in questions_by_num:
+            questions_by_num[question_num] = question_name
+
+    questions = []
+
+    for question_num in sorted(questions_by_num.keys()):
         questions.append({
             "question_num": question_num,
-            "question_name": result["QUESTION_NAME"],
+            "question_name": questions_by_num[question_num],
         })
 
     return questions
-
 
 if __name__ == "__main__":
     print()

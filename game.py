@@ -2,6 +2,7 @@ import json
 import re
 import random
 import request_secat_data
+import secat_cache
 
 
 COURSES = [
@@ -35,7 +36,7 @@ COURSES = [
     {"code": "DECO2500", "name": "Human-Computer Interaction"},
     {"code": "DECO3800", "name": "Design Computing Studio 3 - Proposal"},
     {"code": "DECO3801", "name": "Design Computing Studio 3 - Build"},
-    {"code": "DECO6500", "name": "Advanced Human-Computer Interaction"}
+    {"code": "DECO6500", "name": "Advanced Human-Computer Interaction"},
 ]
 
 
@@ -123,9 +124,24 @@ def offering_distance(offering_a, offering_b):
 
 
 def get_available_offerings_for_course(course_code_value: str, name: str = ""):
-    course_code_value = course_code_value.upper()
+    """
+    Gets available offerings for a course.
+    Uses cache first.
+    """
 
-    print(f"Checking available offerings for {course_code_value}...")
+    course_code_value = course_code_value.upper()
+    cache_key = f"offerings_{course_code_value}"
+
+    cached = secat_cache.get_cached_json(
+        cache_key,
+        secat_cache.OFFERINGS_CACHE_SECONDS
+    )
+
+    if cached is not None:
+        print(f"[OFFERINGS CACHE HIT] {course_code_value}")
+        return cached
+
+    print(f"[OFFERINGS LOAD] Checking available offerings for {course_code_value}...")
 
     response = request_secat_data.getCourseData(course_code_value)
 
@@ -143,7 +159,8 @@ def get_available_offerings_for_course(course_code_value: str, name: str = ""):
         if parsed is not None:
             parsed_offerings.append(parsed)
 
-    print(f"Found {len(parsed_offerings)} usable offering(s) for {course_code_value}.")
+    print(f"[OFFERINGS SAVE] {course_code_value}: {len(parsed_offerings)} usable offering(s)")
+    secat_cache.set_cached_json(cache_key, parsed_offerings)
 
     return parsed_offerings
 
@@ -197,22 +214,47 @@ def get_closest_course_offering(courses, target_offering):
 
 
 def get_answer_from_offering(offering, question_num: int, answer_num: int):
-    print(f"Loading SECaT data for {offering_display(offering)}...")
+    """
+    Gets one answer row from one offering.
+    Uses cached full SECaT data first.
+    """
 
-    response = request_secat_data.getCourseData(
-        offering["course"],
-        offering["sem"],
-        offering["year"]
+    cache_key = (
+        f"secat_data_{offering['course']}"
+        f"_sem{offering['sem']}"
+        f"_{offering['year']}"
     )
 
-    if response["error"] is not None:
-        print(f"Could not load SECaT data: {response['error']}")
-        return None
+    cached_course_data = secat_cache.get_cached_json(
+        cache_key,
+        secat_cache.SECAT_DATA_CACHE_SECONDS
+    )
 
-    try:
-        course_data = extract_json_data(response["data"])
-    except ValueError:
-        return None
+    if cached_course_data is not None:
+        print(f"[DATA CACHE HIT] {offering_display(offering)}")
+        course_data = cached_course_data
+
+    else:
+        print(f"[DATA LOAD] Loading SECaT data for {offering_display(offering)}...")
+
+        response = request_secat_data.getCourseData(
+            offering["course"],
+            offering["sem"],
+            offering["year"]
+        )
+
+        if response["error"] is not None:
+            print(f"Could not load SECaT data: {response['error']}")
+            return None
+
+        try:
+            course_data = extract_json_data(response["data"])
+        except ValueError as error:
+            print(f"Could not parse SECaT data: {error}")
+            return None
+
+        print(f"[DATA SAVE] Saving SECaT data for {offering_display(offering)}")
+        secat_cache.set_cached_json(cache_key, course_data)
 
     matching_results = [
         item for item in course_data
