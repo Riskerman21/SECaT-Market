@@ -344,7 +344,8 @@
         .chart-card,
         .history,
         .trade-summary,
-        .positions {
+        .positions,
+        .portfolio-summary {
             background: rgba(2, 6, 23, 0.48);
             border: 1px solid rgba(148, 163, 184, 0.18);
             border-radius: 20px;
@@ -435,6 +436,106 @@
             font-size: 26px;
             font-weight: 950;
             letter-spacing: -0.05em;
+        }
+
+        .live-market-strip {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 14px;
+            align-items: center;
+            background:
+                linear-gradient(135deg, rgba(34, 197, 94, 0.12), rgba(56, 189, 248, 0.10)),
+                rgba(2, 6, 23, 0.48);
+            border: 1px solid rgba(34, 197, 94, 0.22);
+            border-radius: 20px;
+            padding: 16px;
+            margin-bottom: 18px;
+        }
+
+        .live-label {
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 0.09em;
+            margin-bottom: 5px;
+        }
+
+        .live-status {
+            font-size: 20px;
+            font-weight: 950;
+            color: #86efac;
+        }
+
+        .live-timer {
+            width: 72px;
+            height: 72px;
+            border-radius: 999px;
+            display: grid;
+            place-items: center;
+            font-size: 26px;
+            font-weight: 950;
+            color: #020617;
+            background: linear-gradient(135deg, var(--yellow), var(--orange));
+            box-shadow: 0 0 28px rgba(250, 204, 21, 0.25);
+        }
+
+        .live-volume {
+            font-size: 20px;
+            font-weight: 950;
+            color: #bfdbfe;
+            text-align: right;
+        }
+
+        .bot-feed {
+            background: rgba(2, 6, 23, 0.48);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            border-radius: 20px;
+            padding: 14px;
+            margin-bottom: 18px;
+        }
+
+        .bot-feed-title {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 0.09em;
+            margin-bottom: 8px;
+        }
+
+        .bot-feed-list {
+            display: grid;
+            gap: 8px;
+            max-height: 130px;
+            overflow-y: auto;
+            font-size: 14px;
+            color: #cbd5e1;
+        }
+
+        .bot-trade {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            background: rgba(15, 23, 42, 0.68);
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            border-radius: 12px;
+            padding: 8px 10px;
+        }
+
+        .bot-buy {
+            color: #86efac;
+            font-weight: 900;
+        }
+
+        .bot-sell {
+            color: #fca5a5;
+            font-weight: 900;
+        }
+
+        .market-closed-warning {
+            color: #fecaca;
+            font-weight: 900;
         }
 
         .outcome-grid {
@@ -545,7 +646,8 @@
         }
 
         .history h2,
-        .positions h3 {
+        .positions h3,
+        .portfolio-summary h3 {
             margin: 0 0 12px;
             font-size: 18px;
             letter-spacing: -0.03em;
@@ -676,15 +778,69 @@
             color: white;
         }
 
+        .portfolio-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .portfolio-stat {
+            background: rgba(15, 23, 42, 0.65);
+            border: 1px solid rgba(148, 163, 184, 0.14);
+            border-radius: 14px;
+            padding: 12px;
+        }
+
+        .portfolio-label {
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 5px;
+        }
+
+        .portfolio-value {
+            font-size: 20px;
+            font-weight: 950;
+            color: white;
+        }
+
         .position-item {
             border-top: 1px solid rgba(226, 232, 240, 0.12);
-            padding: 10px 0;
+            padding: 12px 0;
             font-size: 14px;
             color: #cbd5e1;
         }
 
         .position-item:first-of-type {
             border-top: none;
+        }
+
+        .position-header {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .position-side {
+            border-radius: 999px;
+            padding: 4px 8px;
+            font-size: 11px;
+            font-weight: 950;
+            text-transform: uppercase;
+        }
+
+        .position-side.higher {
+            background: rgba(34, 197, 94, 0.16);
+            color: #86efac;
+        }
+
+        .position-side.lower {
+            background: rgba(239, 68, 68, 0.16);
+            color: #fca5a5;
         }
 
         .empty {
@@ -735,8 +891,18 @@
             .market-header,
             .market-stats,
             .outcome-grid,
-            .button-row {
+            .button-row,
+            .portfolio-grid,
+            .live-market-strip {
                 grid-template-columns: 1fr;
+            }
+
+            .live-timer {
+                margin: 0 auto;
+            }
+
+            .live-volume {
+                text-align: left;
             }
 
             .history-row {
@@ -767,8 +933,8 @@
                 <div class="hero-card">
                     <h1>Prediction Market</h1>
                     <p>
-                        Build a market first. Pick a course and SECaT question, then the trading board
-                        will open with prices, trend data, and fake positions.
+                        Build a normal market for open bets, or build a live demo market where bots trade for a short window
+                        and the market resolves using the latest historical result.
                     </p>
 
                     <div class="coin-badge">
@@ -780,7 +946,7 @@
                 <aside class="setup-panel">
                     <div class="setup-title">Create Market</div>
                     <div class="setup-subtitle">
-                        Nothing is shown until the market is built, so the screen stays clean.
+                        Normal market stays open. Live market auto-closes and settles using the latest result.
                     </div>
 
                     <div class="selector-box">
@@ -812,7 +978,16 @@
                         </select>
                     </div>
 
-                    <button class="primary-btn" onclick="loadMarket()">Build Market</button>
+                    <div class="button-row">
+                        <button class="primary-btn" onclick="loadMarket('normal')">
+                            Build Market
+                        </button>
+
+                        <button class="higher-btn" onclick="loadMarket('live')">
+                            Build Live Market
+                        </button>
+                    </div>
+
                     <div class="loading" id="loading">Building market from cached SECaT data...</div>
                     <div class="message" id="choiceMessage"></div>
                 </aside>
@@ -853,6 +1028,29 @@
                                 <div class="stat">
                                     <div class="stat-label">History used</div>
                                     <div class="stat-value" id="historyCount">--</div>
+                                </div>
+                            </div>
+
+                            <div class="live-market-strip">
+                                <div>
+                                    <div class="live-label">Market Mode</div>
+                                    <div class="live-status" id="liveStatus">Closed</div>
+                                </div>
+
+                                <div class="live-timer">
+                                    <span id="marketTimer">--</span>s
+                                </div>
+
+                                <div>
+                                    <div class="live-label" style="text-align: right;">Volume</div>
+                                    <div class="live-volume" id="marketVolume">0 SC</div>
+                                </div>
+                            </div>
+
+                            <div class="bot-feed">
+                                <div class="bot-feed-title">Market activity</div>
+                                <div id="botFeedList" class="bot-feed-list">
+                                    Market has not opened yet.
                                 </div>
                             </div>
 
@@ -951,21 +1149,35 @@
                             Place Fake Trade
                         </button>
 
+                        <button class="secondary-btn" onclick="backToSetup()">
+                            Build Another Market
+                        </button>
+
                         <button class="secondary-btn" onclick="resetPortfolio()">
-                            Reset Portfolio
+                            Reset Saved Bets
                         </button>
 
                         <button class="secondary-btn" onclick="resetWalletForTesting()">
                             Reset Wallet to 500 SC
                         </button>
 
-                        <button class="secondary-btn" onclick="backToSetup()">
-                            Build Another Market
-                        </button>
+                        <div class="portfolio-summary">
+                            <h3>Portfolio Summary</h3>
+                            <div class="portfolio-grid">
+                                <div class="portfolio-stat">
+                                    <div class="portfolio-label">Open Bets</div>
+                                    <div class="portfolio-value" id="openBetsValue">0</div>
+                                </div>
+                                <div class="portfolio-stat">
+                                    <div class="portfolio-label">Total Open Stake</div>
+                                    <div class="portfolio-value" id="totalStakedValue">0 SC</div>
+                                </div>
+                            </div>
+                        </div>
 
                         <div class="positions">
-                            <h3>Open Positions</h3>
-                            <div id="positionsList" class="empty">No positions yet.</div>
+                            <h3>Saved Bets</h3>
+                            <div id="positionsList" class="empty">No bets yet.</div>
                         </div>
                     </aside>
                 </div>
@@ -975,11 +1187,34 @@
 
     <script>
         const WALLET_KEY = "secat_coin_balance";
+        const POSITIONS_KEY = "secat_prediction_positions";
         const STARTING_BALANCE = 500;
+
+        const MARKET_WINDOW_SECONDS = 45;
+        const BOT_TICK_MS = 1200;
+        const MAX_BOT_TRADE_SIZE = 80;
+        const MIN_BOT_TRADE_SIZE = 10;
+        const BOT_NOISE_STRENGTH = 7;
+        const PLAYER_IMPACT_STRENGTH = 0.035;
 
         let currentMarket = null;
         let selectedSide = null;
         let positions = [];
+
+        let marketOpen = false;
+        let marketSecondsLeft = 0;
+        let marketTimerInterval = null;
+        let botInterval = null;
+
+        let liveHigherPrice = 50;
+        let liveLowerPrice = 50;
+        let botTrades = [];
+        let marketVolume = 0;
+
+        let currentMarketMode = "normal";
+        let marketResolved = false;
+        let resolvedResultPercent = null;
+        let resolvedWinningSide = null;
 
         function getWalletBalance() {
             const stored = localStorage.getItem(WALLET_KEY);
@@ -1017,6 +1252,26 @@
             });
         }
 
+        function loadSavedPositions() {
+            const saved = localStorage.getItem(POSITIONS_KEY);
+
+            if (saved === null) {
+                positions = [];
+                return;
+            }
+
+            try {
+                const parsed = JSON.parse(saved);
+                positions = Array.isArray(parsed) ? parsed : [];
+            } catch (error) {
+                positions = [];
+            }
+        }
+
+        function savePositions() {
+            localStorage.setItem(POSITIONS_KEY, JSON.stringify(positions));
+        }
+
         async function loadCourses() {
             const select = document.getElementById("courseSelect");
 
@@ -1046,7 +1301,7 @@
             }
         }
 
-        async function loadMarket() {
+        async function loadMarket(mode = "normal") {
             const courseCode = document.getElementById("courseSelect").value;
             const questionNum = document.getElementById("questionSelect").value;
             const answerNum = document.getElementById("answerSelect").value;
@@ -1059,10 +1314,19 @@
 
             selectedSide = null;
             resetSelectionUI();
+            stopLiveMarket();
+
+            currentMarketMode = mode;
+            marketResolved = false;
+            resolvedResultPercent = null;
+            resolvedWinningSide = null;
 
             document.getElementById("loading").style.display = "block";
             document.getElementById("loading").innerText =
-                "Building market from cached SECaT data...";
+                mode === "live"
+                    ? "Building live market from cached SECaT data..."
+                    : "Building normal market from cached SECaT data...";
+
             document.getElementById("choiceMessage").innerText = "";
 
             try {
@@ -1102,19 +1366,27 @@
         }
 
         function backToSetup() {
+            stopLiveMarket();
+            marketOpen = false;
+
             document.getElementById("marketSection").style.display = "none";
             document.getElementById("setupSection").style.display = "grid";
             document.getElementById("loading").style.display = "none";
             document.getElementById("choiceMessage").innerText = "";
+
             selectedSide = null;
+            currentMarket = null;
+
             resetSelectionUI();
             updateWalletDisplay();
+            renderPositions();
         }
 
         function renderMarket(market) {
             const prediction = Number(market.initial_prediction);
-            const higherPrice = getHigherPrice(market);
-            const lowerPrice = 100 - higherPrice;
+
+            liveHigherPrice = getHigherPrice(market);
+            liveLowerPrice = 100 - liveHigherPrice;
 
             const upcoming = market.upcoming_offering || null;
             const upcomingLabel = upcoming
@@ -1145,14 +1417,15 @@
             document.getElementById("historyCount").innerText =
                 market.history_count || market.history.length;
 
-            document.getElementById("higherPrice").innerText =
-                higherPrice + "¢";
-
-            document.getElementById("lowerPrice").innerText =
-                lowerPrice + "¢";
-
+            updateLivePrices();
             renderHistory(market);
             renderMiniChart(market);
+
+            if (currentMarketMode === "live") {
+                startLiveMarket();
+            } else {
+                startNormalMarket();
+            }
         }
 
         function getHigherPrice(market) {
@@ -1174,6 +1447,359 @@
             price = Math.max(5, Math.min(95, Math.round(price)));
 
             return price;
+        }
+
+        function startNormalMarket() {
+            stopLiveMarket();
+
+            marketOpen = true;
+            marketResolved = false;
+            marketSecondsLeft = 0;
+            botTrades = [];
+            marketVolume = 0;
+
+            document.getElementById("botFeedList").innerText =
+                "Normal market mode. No bots. Bets stay open until a live market resolves or you reset saved bets.";
+
+            document.getElementById("higherButton").disabled = false;
+            document.getElementById("lowerButton").disabled = false;
+
+            updateLivePrices();
+            updateNormalMarketUI();
+        }
+
+        function updateNormalMarketUI() {
+            const status = document.getElementById("liveStatus");
+            const timer = document.getElementById("marketTimer");
+            const volume = document.getElementById("marketVolume");
+
+            if (status !== null) {
+                status.innerText = "Normal Market";
+                status.className = "live-status";
+            }
+
+            if (timer !== null) {
+                timer.innerText = "∞";
+            }
+
+            if (volume !== null) {
+                volume.innerText = Math.round(marketVolume) + " SC";
+            }
+        }
+
+        function startLiveMarket() {
+            stopLiveMarket();
+
+            marketOpen = true;
+            marketResolved = false;
+            marketSecondsLeft = MARKET_WINDOW_SECONDS;
+            botTrades = [];
+            marketVolume = 0;
+
+            document.getElementById("botFeedList").innerText =
+                "Waiting for bot trades...";
+
+            updateLivePrices();
+            updateLiveMarketUI();
+
+            marketTimerInterval = setInterval(() => {
+                marketSecondsLeft -= 1;
+                updateLiveMarketUI();
+
+                if (marketSecondsLeft <= 0) {
+                    closeLiveMarket();
+                }
+            }, 1000);
+
+            botInterval = setInterval(() => {
+                simulateBotTrade();
+            }, BOT_TICK_MS);
+        }
+
+        function stopLiveMarket() {
+            if (marketTimerInterval !== null) {
+                clearInterval(marketTimerInterval);
+                marketTimerInterval = null;
+            }
+
+            if (botInterval !== null) {
+                clearInterval(botInterval);
+                botInterval = null;
+            }
+        }
+
+        function closeLiveMarket() {
+            marketOpen = false;
+            stopLiveMarket();
+
+            resolveLiveMarket();
+
+            updateLiveMarketUI();
+
+            document.getElementById("higherButton").disabled = true;
+            document.getElementById("lowerButton").disabled = true;
+            document.getElementById("placeTradeButton").disabled = true;
+        }
+
+        function resolveLiveMarket() {
+            if (currentMarket === null || marketResolved) {
+                return;
+            }
+
+            const latestHistory = currentMarket.history && currentMarket.history.length > 0
+                ? currentMarket.history[0]
+                : null;
+
+            if (latestHistory === null) {
+                return;
+            }
+
+            resolvedResultPercent = Number(latestHistory.percent);
+            const prediction = Number(currentMarket.initial_prediction);
+
+            if (resolvedResultPercent > prediction) {
+                resolvedWinningSide = "higher";
+            } else if (resolvedResultPercent < prediction) {
+                resolvedWinningSide = "lower";
+            } else {
+                resolvedWinningSide = "push";
+            }
+
+            marketResolved = true;
+
+            settlePositionsForCurrentMarket();
+
+            const botFeed = document.getElementById("botFeedList");
+
+            if (botFeed !== null) {
+                const resultText =
+                    resolvedWinningSide === "push"
+                        ? "PUSH / SAME"
+                        : resolvedWinningSide.toUpperCase();
+
+                const resultRow = document.createElement("div");
+                resultRow.className = "bot-trade";
+                resultRow.innerHTML = `
+                    <span>
+                        <strong>Market Closed</strong>
+                        <span class="bot-buy">RESULT</span>
+                        ${resultText}
+                    </span>
+                    <span>${resolvedResultPercent.toFixed(2)}%</span>
+                `;
+
+                botFeed.prepend(resultRow);
+            }
+
+            alert(
+                "Live market closed.\n\n" +
+                "Latest historical result used for demo: " + resolvedResultPercent.toFixed(2) + "%\n" +
+                "Winning side: " + resolvedWinningSide.toUpperCase()
+            );
+        }
+
+        function settlePositionsForCurrentMarket() {
+            if (currentMarket === null || resolvedWinningSide === null) {
+                return;
+            }
+
+            let totalPayout = 0;
+
+            positions = positions.map(position => {
+                const sameMarket =
+                    position.course === currentMarket.course &&
+                    Number(position.questionNum) === Number(currentMarket.question_num) &&
+                    Number(position.answerNum) === Number(currentMarket.answer_num) &&
+                    position.status === "open";
+
+                if (!sameMarket) {
+                    return position;
+                }
+
+                if (resolvedWinningSide === "push") {
+                    totalPayout += Number(position.stake);
+
+                    return {
+                        ...position,
+                        status: "refunded",
+                        resolvedAt: new Date().toISOString(),
+                        resolvedResultPercent: resolvedResultPercent,
+                        payout: Number(position.stake),
+                        profit: 0
+                    };
+                }
+
+                if (position.side === resolvedWinningSide) {
+                    const payout = Number(position.shares);
+                    const profit = payout - Number(position.stake);
+
+                    totalPayout += payout;
+
+                    return {
+                        ...position,
+                        status: "won",
+                        resolvedAt: new Date().toISOString(),
+                        resolvedResultPercent: resolvedResultPercent,
+                        payout: payout,
+                        profit: profit
+                    };
+                }
+
+                return {
+                    ...position,
+                    status: "lost",
+                    resolvedAt: new Date().toISOString(),
+                    resolvedResultPercent: resolvedResultPercent,
+                    payout: 0,
+                    profit: -Number(position.stake)
+                };
+            });
+
+            if (totalPayout > 0) {
+                const currentBalance = getWalletBalance();
+                setWalletBalance(currentBalance + totalPayout);
+            }
+
+            savePositions();
+            renderPositions();
+            updateWalletDisplay();
+        }
+
+        function updateLiveMarketUI() {
+            const status = document.getElementById("liveStatus");
+            const timer = document.getElementById("marketTimer");
+            const volume = document.getElementById("marketVolume");
+
+            if (status !== null) {
+                status.innerText = marketOpen ? "Trading Open" : "Trading Closed";
+                status.className = marketOpen ? "live-status" : "live-status market-closed-warning";
+            }
+
+            if (timer !== null) {
+                timer.innerText = Math.max(0, marketSecondsLeft);
+            }
+
+            if (volume !== null) {
+                volume.innerText = Math.round(marketVolume) + " SC";
+            }
+        }
+
+        function simulateBotTrade() {
+            if (!marketOpen || currentMarket === null || currentMarketMode !== "live") {
+                return;
+            }
+
+            const botNames = [
+                "Bot Alpha",
+                "Bot Vega",
+                "Bot Noodle",
+                "Bot Kangaroo",
+                "Bot Sigma",
+                "Bot Wombat",
+                "Bot Oracle"
+            ];
+
+            const bot = botNames[Math.floor(Math.random() * botNames.length)];
+
+            const side = Math.random() < liveHigherPrice / 100
+                ? "higher"
+                : "lower";
+
+            const action = Math.random() < 0.58
+                ? "buy"
+                : "sell";
+
+            const stake =
+                MIN_BOT_TRADE_SIZE +
+                Math.random() * (MAX_BOT_TRADE_SIZE - MIN_BOT_TRADE_SIZE);
+
+            applyMarketMove(side, action, stake, true);
+
+            botTrades.unshift({
+                bot: bot,
+                side: side,
+                action: action,
+                stake: stake,
+                higherPrice: liveHigherPrice,
+                lowerPrice: liveLowerPrice,
+                time: new Date().toLocaleTimeString()
+            });
+
+            botTrades = botTrades.slice(0, 8);
+
+            renderBotFeed();
+            updateLivePrices();
+            updateTradeSummary();
+            updateLiveMarketUI();
+        }
+
+        function applyMarketMove(side, action, stake, isBot) {
+            const direction =
+                side === "higher"
+                    ? 1
+                    : -1;
+
+            const actionDirection =
+                action === "buy"
+                    ? 1
+                    : -1;
+
+            const noise = isBot
+                ? (Math.random() - 0.5) * BOT_NOISE_STRENGTH
+                : 0;
+
+            const impact = stake * PLAYER_IMPACT_STRENGTH;
+            const move = direction * actionDirection * impact + noise;
+
+            liveHigherPrice = Math.round(liveHigherPrice + move);
+            liveHigherPrice = Math.max(5, Math.min(95, liveHigherPrice));
+
+            liveLowerPrice = 100 - liveHigherPrice;
+
+            marketVolume += stake;
+        }
+
+        function updateLivePrices() {
+            document.getElementById("higherPrice").innerText =
+                liveHigherPrice + "¢";
+
+            document.getElementById("lowerPrice").innerText =
+                liveLowerPrice + "¢";
+        }
+
+        function renderBotFeed() {
+            const list = document.getElementById("botFeedList");
+
+            if (list === null) {
+                return;
+            }
+
+            if (botTrades.length === 0) {
+                list.innerText = "Waiting for bot trades...";
+                return;
+            }
+
+            list.innerHTML = "";
+
+            botTrades.forEach(trade => {
+                const row = document.createElement("div");
+                row.className = "bot-trade";
+
+                const actionClass = trade.action === "buy"
+                    ? "bot-buy"
+                    : "bot-sell";
+
+                row.innerHTML = `
+                    <span>
+                        <strong>${trade.bot}</strong>
+                        <span class="${actionClass}">${trade.action.toUpperCase()}</span>
+                        ${trade.side.toUpperCase()}
+                    </span>
+                    <span>${Math.round(trade.stake)} SC · H ${trade.higherPrice}¢</span>
+                `;
+
+                list.appendChild(row);
+            });
         }
 
         function renderHistory(market) {
@@ -1224,7 +1850,7 @@
         }
 
         function selectSide(side) {
-            if (currentMarket === null) {
+            if (currentMarket === null || !marketOpen) {
                 return;
             }
 
@@ -1264,8 +1890,8 @@
             }
 
             const stake = Number(document.getElementById("stakeInput").value || 0);
-            const higherPrice = getHigherPrice(currentMarket);
-            const lowerPrice = 100 - higherPrice;
+            const higherPrice = liveHigherPrice;
+            const lowerPrice = liveLowerPrice;
 
             const selectedPriceCents = selectedSide === "higher"
                 ? higherPrice
@@ -1299,6 +1925,11 @@
                 return;
             }
 
+            if (!marketOpen) {
+                alert("Trading window is closed. Build another market to trade again.");
+                return;
+            }
+
             const stake = Number(document.getElementById("stakeInput").value || 0);
             const currentBalance = getWalletBalance();
 
@@ -1312,8 +1943,8 @@
                 return;
             }
 
-            const higherPrice = getHigherPrice(currentMarket);
-            const lowerPrice = 100 - higherPrice;
+            const higherPrice = liveHigherPrice;
+            const lowerPrice = liveLowerPrice;
             const priceCents = selectedSide === "higher" ? higherPrice : lowerPrice;
             const price = priceCents / 100;
             const shares = stake / price;
@@ -1325,30 +1956,80 @@
                 return;
             }
 
-            positions.push({
+            applyMarketMove(selectedSide, "buy", stake, false);
+            updateLivePrices();
+
+            if (currentMarketMode === "live") {
+                updateLiveMarketUI();
+            } else {
+                updateNormalMarketUI();
+            }
+
+            const position = {
+                id: Date.now().toString() + "_" + Math.random().toString(16).slice(2),
+                createdAt: new Date().toISOString(),
+
                 course: currentMarket.course,
+                courseName: currentMarket.name,
+
                 question: currentMarket.question_name,
+                questionNum: currentMarket.question_num,
                 answer: currentMarket.answer,
+                answerNum: currentMarket.answer_num,
+
                 prediction: currentMarket.initial_prediction,
-                upcoming: currentMarket.upcoming_offering ? currentMarket.upcoming_offering.label : "Upcoming offering",
+                confidence: currentMarket.confidence,
+
+                upcoming: currentMarket.upcoming_offering
+                    ? currentMarket.upcoming_offering.label
+                    : "Upcoming offering",
+
                 side: selectedSide,
                 stake: stake,
                 priceCents: priceCents,
-                shares: shares
-            });
+                shares: shares,
+
+                marketMode: currentMarketMode,
+                currentLivePriceHigher: liveHigherPrice,
+                currentLivePriceLower: liveLowerPrice,
+
+                status: "open"
+            };
+
+            positions.push(position);
+            savePositions();
 
             renderPositions();
             updateWalletDisplay();
 
-            alert(`Trade placed: ${selectedSide.toUpperCase()} ${stake.toFixed(0)} SC at ${priceCents}¢.`);
+            alert(`Bet saved: ${selectedSide.toUpperCase()} ${stake.toFixed(0)} SC at ${priceCents}¢.`);
+
+            selectedSide = null;
+            resetSelectionUI();
         }
 
         function renderPositions() {
             const list = document.getElementById("positionsList");
+            const openBetsValue = document.getElementById("openBetsValue");
+            const totalStakedValue = document.getElementById("totalStakedValue");
+
+            const openPositions = positions.filter(position => position.status === "open");
+
+            const totalStaked = openPositions.reduce((sum, position) => {
+                return sum + Number(position.stake || 0);
+            }, 0);
+
+            if (openBetsValue !== null) {
+                openBetsValue.innerText = openPositions.length;
+            }
+
+            if (totalStakedValue !== null) {
+                totalStakedValue.innerText = totalStaked.toFixed(0) + " SC";
+            }
 
             if (positions.length === 0) {
                 list.className = "empty";
-                list.innerText = "No positions yet.";
+                list.innerText = "No bets yet.";
                 return;
             }
 
@@ -1359,17 +2040,51 @@
                 const item = document.createElement("div");
                 item.className = "position-item";
 
+                const sideClass = position.side === "higher" ? "higher" : "lower";
+                const sideText = position.side.toUpperCase();
+
+                const statusText = position.status
+                    ? position.status.toUpperCase()
+                    : "OPEN";
+
+                const createdDate = position.createdAt
+                    ? new Date(position.createdAt).toLocaleString()
+                    : "Saved bet";
+
                 item.innerHTML = `
-                    <strong>${position.course}</strong> —
-                    ${position.side.toUpperCase()} than ${Number(position.prediction).toFixed(2)}%
+                    <div class="position-header">
+                        <strong>${position.course}</strong>
+                        <span class="position-side ${sideClass}">${sideText}</span>
+                    </div>
+
+                    <span>${sideText} than ${Number(position.prediction).toFixed(2)}%</span>
                     <br>
                     <span>${position.question}</span>
                     <br>
                     <span>${position.upcoming}</span>
                     <br>
-                    Stake: ${position.stake.toFixed(0)} SC
+                    Stake: ${Number(position.stake).toFixed(0)} SC
                     · Price: ${position.priceCents}¢
-                    · Shares: ${position.shares.toFixed(2)}
+                    · Shares: ${Number(position.shares).toFixed(2)}
+                    <br>
+                    Status: <strong>${statusText}</strong>
+                    ${
+                        position.resolvedResultPercent !== undefined
+                            ? `<br>Resolved result: ${Number(position.resolvedResultPercent).toFixed(2)}%`
+                            : ""
+                    }
+                    ${
+                        position.payout !== undefined
+                            ? `<br>Payout: ${Number(position.payout).toFixed(2)} SC`
+                            : ""
+                    }
+                    ${
+                        position.profit !== undefined
+                            ? `<br>Profit: ${Number(position.profit).toFixed(2)} SC`
+                            : ""
+                    }
+                    <br>
+                    <span style="color: #94a3b8;">${createdDate}</span>
                 `;
 
                 list.appendChild(item);
@@ -1378,7 +2093,7 @@
 
         function resetPortfolio() {
             const confirmed = confirm(
-                "Reset portfolio positions? This will not reset your SECaT Coins wallet."
+                "Reset all saved bets? This will not refund SECaT Coins."
             );
 
             if (!confirmed) {
@@ -1386,6 +2101,8 @@
             }
 
             positions = [];
+            savePositions();
+
             selectedSide = null;
 
             renderPositions();
@@ -1403,6 +2120,7 @@
         }
 
         loadCourses();
+        loadSavedPositions();
         updateWalletDisplay();
         renderPositions();
     </script>

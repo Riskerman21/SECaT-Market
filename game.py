@@ -56,7 +56,6 @@ ENGG_COURSES = [
 ELEC_COURSES = [
     {"code": "ELEC2300", "name": "Fundamentals of Electromagnetism and Electromechanics"},
     {"code": "ELEC4410", "name": "Advanced Electronic and Power Electronics Design"},
-    {"code": "ELEC7310", "name": "Electricity Market Operation and Security"},
     {"code": "ELEC2400", "name": "Electronic Devices and Circuits"},
     {"code": "ELEC3100", "name": "Fundamentals of Electromagnetic Fields and Waves"},
     {"code": "ELEC3310", "name": "Electrical Energy Conversion and Utilisation"},
@@ -91,6 +90,16 @@ PSYCH_COURSES = [
     {"code": "PSYC3082", "name": "Psychotherapies and Counselling"},
 ]
 
+INFS_COURSES = [
+    {"code": "INFS1200", "name": "Introduction to Information Systems"},
+    {"code": "INFS2021E", "name": "Information Technology"},
+    {"code": "INFS2200", "name": "Relational Database Systems"},
+    {"code": "INFS3200", "name": "Advanced Database Systems"},
+    {"code": "INFS3202", "name": "Web Information Systems"},
+    {"code": "INFS3208", "name": "Cloud Computing"},
+    {"code": "INFS4203", "name": "Data Mining"},
+    {"code": "INFS4205", "name": "Advanced Techniques for High Dimensional Data"},
+]
 
 COURSE_GROUPS = {
     "computer_science": {
@@ -113,7 +122,13 @@ COURSE_GROUPS = {
         "label": "Psychology",
         "courses": PSYCH_COURSES,
     },
+    "information Systems": {
+        "label": "information Systems",
+        "courses": INFS_COURSES
+    }
 }
+
+
 
 
 COURSES = (
@@ -122,6 +137,7 @@ COURSES = (
     + ELEC_COURSES
     + MECH_COURSES
     + PSYCH_COURSES
+    + INFS_COURSES
 )
 
 
