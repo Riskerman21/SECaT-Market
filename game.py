@@ -6,7 +6,6 @@ import secat_cache
 
 
 COMPUTER_SCIENCE_COURSES = [
-    # CSSE courses
     {"code": "CSSE2310", "name": "Computer Systems Principles and Programming"},
     {"code": "CSSE4010", "name": "Digital System Design"},
     {"code": "CSSE1001", "name": "Introduction to Software Engineering"},
@@ -19,7 +18,6 @@ COMPUTER_SCIENCE_COURSES = [
     {"code": "CSSE4630", "name": "Principles of Program Analysis"},
     {"code": "CSSE6400", "name": "Software Architecture"},
 
-    # COMP courses
     {"code": "COMP2048", "name": "Theory of Computing"},
     {"code": "COMP4403", "name": "Compilers and Interpreters"},
     {"code": "COMP3506", "name": "Algorithms and Data Structures"},
@@ -31,14 +29,12 @@ COMPUTER_SCIENCE_COURSES = [
     {"code": "COMP3710", "name": "Pattern Recognition and Analysis"},
     {"code": "COMP4702", "name": "Machine Learning"},
 
-    # DECO courses
     {"code": "DECO1400", "name": "Introduction to Web Design"},
     {"code": "DECO2500", "name": "Human-Computer Interaction"},
     {"code": "DECO3800", "name": "Design Computing Studio 3 - Proposal"},
     {"code": "DECO3801", "name": "Design Computing Studio 3 - Build"},
     {"code": "DECO6500", "name": "Advanced Human-Computer Interaction"},
 
-    # COMS courses
     {"code": "COMS3200", "name": "Computer Networks I"},
     {"code": "COMS6200", "name": "Computer Networks II"},
 ]
@@ -90,6 +86,7 @@ PSYCH_COURSES = [
     {"code": "PSYC3082", "name": "Psychotherapies and Counselling"},
 ]
 
+
 INFS_COURSES = [
     {"code": "INFS1200", "name": "Introduction to Information Systems"},
     {"code": "INFS2200", "name": "Relational Database Systems"},
@@ -99,6 +96,7 @@ INFS_COURSES = [
     {"code": "INFS4203", "name": "Data Mining"},
     {"code": "INFS4205", "name": "Advanced Techniques for High Dimensional Data"},
 ]
+
 
 COURSE_GROUPS = {
     "computer_science": {
@@ -121,13 +119,11 @@ COURSE_GROUPS = {
         "label": "Psychology",
         "courses": PSYCH_COURSES,
     },
-    "information Systems": {
-        "label": "information Systems",
-        "courses": INFS_COURSES
-    }
+    "information_systems": {
+        "label": "Information Systems",
+        "courses": INFS_COURSES,
+    },
 }
-
-
 
 
 COURSES = (
@@ -141,14 +137,10 @@ COURSES = (
 
 
 RECENT_OFFERING_YEARS = 5
+FUN_ANSWER_OPTIONS = [1]
+
 
 def get_courses_for_groups(group_keys):
-    """
-    Converts selected group keys from the frontend into one combined course list.
-
-    If no valid groups are provided, it defaults to all courses.
-    """
-
     if not group_keys:
         return COURSES
 
@@ -162,7 +154,6 @@ def get_courses_for_groups(group_keys):
 
         selected_courses.extend(group["courses"])
 
-    # Remove duplicate course codes while preserving order.
     unique_courses = []
     seen_codes = set()
 
@@ -182,10 +173,6 @@ def get_courses_for_groups(group_keys):
 
 
 def get_course_group_list():
-    """
-    Returns course groups for the frontend start screen.
-    """
-
     groups = []
 
     for key, group in COURSE_GROUPS.items():
@@ -266,27 +253,19 @@ def parse_offering(offering_text: str, name: str = ""):
         "label": offering_text.strip(),
     }
 
+
 def filter_offerings_to_final_years(offerings, final_year_count=RECENT_OFFERING_YEARS):
-    """
-    Keeps only offerings from the latest N years available for that course.
-
-    Example:
-    If a course has offerings from 2014 to 2025 and final_year_count is 5,
-    this keeps 2021, 2022, 2023, 2024, 2025.
-    """
-
     if len(offerings) == 0:
         return []
 
     latest_year = max(offering["year"] for offering in offerings)
     earliest_allowed_year = latest_year - final_year_count + 1
 
-    recent_offerings = [
+    return [
         offering for offering in offerings
         if offering["year"] >= earliest_allowed_year
     ]
 
-    return recent_offerings
 
 def semester_index(sem: int, year: int):
     return year * 2 + sem
@@ -344,7 +323,6 @@ def get_available_offerings_for_course(course_code_value: str, name: str = ""):
         f"{len(parsed_offerings)} usable offering(s)"
     )
 
-    # Save the full list so the cache remains useful later if you change the filter.
     secat_cache.set_cached_json(cache_key, parsed_offerings)
 
     recent_offerings = filter_offerings_to_final_years(parsed_offerings)
@@ -456,12 +434,30 @@ def get_answer_from_offering(offering, question_num: int, answer_num: int):
     return matching_results[0]
 
 
-def prepare_round(course_groups=None, max_attempts: int = 20):
-    """
-    Creates one complete website round.
-    The course_groups parameter lets the frontend choose which course lists to use.
-    """
+def calculate_correct_answer(percent_a, percent_b):
+    if percent_b > percent_a:
+        return "higher"
 
+    if percent_b < percent_a:
+        return "lower"
+
+    return "same"
+
+
+def offering_payload(offering, data):
+    return {
+        "course": offering["course"],
+        "name": offering["name"],
+        "label": offering["label"],
+        "display": offering_display(offering),
+        "sem": offering["sem"],
+        "year": offering["year"],
+        "count": data["VALUE"],
+        "percent": round(data["PERCENT_ANSWER"], 2),
+    }
+
+
+def prepare_round(course_groups=None, max_attempts: int = 20):
     selected_courses = get_courses_for_groups(course_groups)
 
     for attempt in range(1, max_attempts + 1):
@@ -469,7 +465,7 @@ def prepare_round(course_groups=None, max_attempts: int = 20):
         print(f"Using {len(selected_courses)} selected course(s).")
 
         question_num = random.randint(1, 8)
-        answer_num = random.choice([1])
+        answer_num = random.choice(FUN_ANSWER_OPTIONS)
 
         offering_a = get_random_course_offering(selected_courses)
 
@@ -502,37 +498,101 @@ def prepare_round(course_groups=None, max_attempts: int = 20):
         percent_a = data_a["PERCENT_ANSWER"]
         percent_b = data_b["PERCENT_ANSWER"]
 
-        if percent_b > percent_a:
-            correct_answer = "higher"
-        elif percent_b < percent_a:
-            correct_answer = "lower"
-        else:
-            correct_answer = "same"
-
         return {
+            "question_num": question_num,
+            "answer_num": answer_num,
             "question_name": data_a["QUESTION_NAME"],
             "answer_option": data_a["ANSWER"],
             "course_group_count": len(selected_courses),
 
-            "left": {
-                "course": offering_a["course"],
-                "name": offering_a["name"],
-                "label": offering_a["label"],
-                "display": offering_display(offering_a),
-                "count": data_a["VALUE"],
-                "percent": round(percent_a, 2),
-            },
+            "left": offering_payload(offering_a, data_a),
+            "right": offering_payload(offering_b, data_b),
 
-            "right": {
-                "course": offering_b["course"],
-                "name": offering_b["name"],
-                "label": offering_b["label"],
-                "display": offering_display(offering_b),
-                "count": data_b["VALUE"],
-                "percent": round(percent_b, 2),
-            },
+            "correct_answer": calculate_correct_answer(percent_a, percent_b),
+        }
 
-            "correct_answer": correct_answer,
+    return None
+
+
+def prepare_challenger(
+    current_offering,
+    question_num,
+    answer_num,
+    course_groups=None,
+    used_labels=None,
+    max_pool_size=12
+):
+    """
+    Creates one new right-side challenger for the rolling Higher/Lower chain.
+
+    The challenger:
+    - uses the same question
+    - uses the same answer option
+    - is close in semester/year to the current left card
+    - avoids already-used offering labels
+    """
+
+    selected_courses = get_courses_for_groups(course_groups)
+
+    if used_labels is None:
+        used_labels = []
+
+    used_label_set = set(used_labels)
+    candidate_offerings = []
+
+    shuffled_courses = selected_courses.copy()
+    random.shuffle(shuffled_courses)
+
+    for course in shuffled_courses:
+        code = course_code(course)
+        name = course_name(course)
+
+        if code == current_offering["course"]:
+            continue
+
+        offerings = get_available_offerings_for_course(code, name)
+
+        for offering in offerings:
+            if offering["label"] in used_label_set:
+                continue
+
+            candidate_offerings.append(offering)
+
+    if len(candidate_offerings) == 0:
+        return None
+
+    candidate_offerings.sort(
+        key=lambda offering: offering_distance(current_offering, offering)
+    )
+
+    closest_pool = candidate_offerings[:min(max_pool_size, len(candidate_offerings))]
+    random.shuffle(closest_pool)
+
+    for challenger_offering in closest_pool:
+        challenger_data = get_answer_from_offering(
+            challenger_offering,
+            question_num,
+            answer_num
+        )
+
+        if challenger_data is None:
+            continue
+
+        return {
+            "offering": {
+                "course": challenger_offering["course"],
+                "name": challenger_offering["name"],
+                "label": challenger_offering["label"],
+                "display": offering_display(challenger_offering),
+                "sem": challenger_offering["sem"],
+                "year": challenger_offering["year"],
+            },
+            "data": {
+                "count": challenger_data["VALUE"],
+                "percent": round(challenger_data["PERCENT_ANSWER"], 2),
+                "question_name": challenger_data["QUESTION_NAME"],
+                "answer_option": challenger_data["ANSWER"],
+            },
         }
 
     return None

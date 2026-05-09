@@ -5,14 +5,27 @@
     <title>SECaT Higher or Lower</title>
     <style>
         * { box-sizing: border-box; }
+
         :root {
-            --bg:#070816; --panel:rgba(15,23,42,.88); --border:rgba(148,163,184,.24);
-            --muted:#94a3b8; --text:#f8fafc; --pink:#ec4899; --purple:#8b5cf6;
-            --blue:#38bdf8; --cyan:#22d3ee; --green:#22c55e; --yellow:#facc15;
-            --orange:#fb923c; --red:#ef4444;
+            --bg:#070816;
+            --panel:rgba(15,23,42,.88);
+            --border:rgba(148,163,184,.24);
+            --muted:#94a3b8;
+            --text:#f8fafc;
+            --pink:#ec4899;
+            --purple:#8b5cf6;
+            --blue:#38bdf8;
+            --cyan:#22d3ee;
+            --green:#22c55e;
+            --yellow:#facc15;
+            --orange:#fb923c;
+            --red:#ef4444;
         }
+
         body {
-            margin:0; font-family:Arial, Helvetica, sans-serif; color:var(--text);
+            margin:0;
+            font-family:Arial, Helvetica, sans-serif;
+            color:var(--text);
             background:
                 radial-gradient(circle at top left, rgba(236,72,153,.26), transparent 34%),
                 radial-gradient(circle at top right, rgba(56,189,248,.24), transparent 34%),
@@ -20,156 +33,1084 @@
                 var(--bg);
             overflow-x:hidden;
         }
-        .game { min-height:100vh; }
-        .start-screen { min-height:100vh; display:grid; place-items:center; padding:24px; }
+
+        .game {
+            min-height:100vh;
+        }
+
+        .start-screen {
+            min-height:100vh;
+            display:grid;
+            place-items:center;
+            padding:24px;
+        }
+
         .start-card {
-            width:min(920px,100%); padding:34px; border-radius:32px;
-            background:linear-gradient(135deg, rgba(236,72,153,.18), rgba(56,189,248,.12)), rgba(15,23,42,.88);
-            border:1px solid var(--border); box-shadow:0 30px 90px rgba(0,0,0,.35);
+            width:min(920px,100%);
+            padding:34px;
+            border-radius:32px;
+            background:
+                linear-gradient(135deg, rgba(236,72,153,.18), rgba(56,189,248,.12)),
+                rgba(15,23,42,.88);
+            border:1px solid var(--border);
+            box-shadow:0 30px 90px rgba(0,0,0,.35);
         }
-        .brand-big,.brand { font-size:22px; font-weight:950; }
-        .brand-big span,.brand span { color:var(--yellow); }
-        .start-card h1 { margin:18px 0 10px; font-size:46px; letter-spacing:-.06em; line-height:1; }
-        .start-card p { margin:0 0 24px; color:#cbd5e1; font-size:18px; line-height:1.45; }
-        .group-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-bottom:22px; }
+
+        .brand-big,
+        .brand {
+            font-size:22px;
+            font-weight:950;
+        }
+
+        .brand-big span,
+        .brand span {
+            color:var(--yellow);
+        }
+
+        .start-card h1 {
+            margin:18px 0 10px;
+            font-size:46px;
+            letter-spacing:-.06em;
+            line-height:1;
+        }
+
+        .start-card p {
+            margin:0 0 24px;
+            color:#cbd5e1;
+            font-size:18px;
+            line-height:1.45;
+        }
+
+        .group-grid {
+            display:grid;
+            grid-template-columns:repeat(2,1fr);
+            gap:14px;
+            margin-bottom:22px;
+        }
+
         .group-card {
-            cursor:pointer; border:1px solid var(--border); border-radius:22px; padding:18px;
-            background:rgba(2,6,23,.48); transition:.15s ease;
+            cursor:pointer;
+            border:1px solid var(--border);
+            border-radius:22px;
+            padding:18px;
+            background:rgba(2,6,23,.48);
+            transition:.15s ease;
         }
-        .group-card:hover { transform:translateY(-2px); }
+
+        .group-card:hover {
+            transform:translateY(-2px);
+        }
+
         .group-card.selected {
-            border-color:var(--yellow); box-shadow:0 0 0 3px rgba(250,204,21,.18);
-            background:radial-gradient(circle at top left, rgba(250,204,21,.18), transparent 46%), rgba(2,6,23,.58);
+            border-color:var(--yellow);
+            box-shadow:0 0 0 3px rgba(250,204,21,.18);
+            background:
+                radial-gradient(circle at top left, rgba(250,204,21,.18), transparent 46%),
+                rgba(2,6,23,.58);
         }
-        .group-title { font-size:20px; font-weight:950; margin-bottom:6px; }
-        .group-count { color:var(--muted); font-size:14px; font-weight:800; }
-        .start-button,.choice-button,.next-button,.meter-reset,.achievements-floating-button,.achievements-close-button,.achievements-reset-button,.leaderboard-reset {
-            cursor:pointer; border:none; font-weight:950; transition:.15s ease;
+
+        .group-title {
+            font-size:20px;
+            font-weight:950;
+            margin-bottom:6px;
         }
+
+        .group-count {
+            color:var(--muted);
+            font-size:14px;
+            font-weight:800;
+        }
+
+        .start-button,
+        .choice-button,
+        .next-button,
+        .meter-reset,
+        .achievements-floating-button,
+        .achievements-close-button,
+        .achievements-reset-button,
+        .leaderboard-reset {
+            cursor:pointer;
+            border:none;
+            font-weight:950;
+            transition:.15s ease;
+        }
+
         .start-button {
-            width:100%; border-radius:18px; padding:16px 18px; font-size:18px; color:#020617;
-            background:linear-gradient(135deg,var(--yellow),var(--orange)); box-shadow:0 18px 44px rgba(250,204,21,.25);
+            width:100%;
+            border-radius:18px;
+            padding:16px 18px;
+            font-size:18px;
+            color:#020617;
+            background:linear-gradient(135deg,var(--yellow),var(--orange));
+            box-shadow:0 18px 44px rgba(250,204,21,.25);
         }
-        .start-button:hover,.choice-button:hover,.next-button:hover { transform:translateY(-2px) scale(1.03); }
-        .start-message { margin-top:14px; min-height:22px; color:#fecaca; font-weight:900; }
-        #gameScreen { display:none; min-height:100vh; flex-direction:column; }
+
+        .start-button:hover,
+        .choice-button:hover,
+        .next-button:hover {
+            transform:translateY(-2px) scale(1.03);
+        }
+
+        .start-message {
+            margin-top:14px;
+            min-height:22px;
+            color:#fecaca;
+            font-weight:900;
+        }
+
+        #gameScreen {
+            display:none;
+            min-height:100vh;
+            flex-direction:column;
+        }
+
         .top-shell {
-            background:rgba(2,6,23,.68); border-bottom:1px solid var(--border); padding:14px 22px 16px;
-            backdrop-filter:blur(16px); box-shadow:0 18px 50px rgba(0,0,0,.25);
+            background:rgba(2,6,23,.68);
+            border-bottom:1px solid var(--border);
+            padding:14px 22px 16px;
+            backdrop-filter:blur(16px);
+            box-shadow:0 18px 50px rgba(0,0,0,.25);
         }
+
         .nav-bar {
-            max-width:1220px; margin:0 auto 12px; display:flex; justify-content:space-between; align-items:center;
-            background:rgba(15,23,42,.76); border:1px solid var(--border); border-radius:22px; padding:12px 16px;
+            max-width:1220px;
+            margin:0 auto 12px;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            background:rgba(15,23,42,.76);
+            border:1px solid var(--border);
+            border-radius:22px;
+            padding:12px 16px;
         }
-        .nav-links { display:flex; gap:10px; }
+
+        .nav-links {
+            display:flex;
+            gap:10px;
+        }
+
         .nav-links a {
-            color:#cbd5e1; text-decoration:none; padding:9px 14px; border-radius:999px; font-weight:850; font-size:14px;
+            color:#cbd5e1;
+            text-decoration:none;
+            padding:9px 14px;
+            border-radius:999px;
+            font-weight:850;
+            font-size:14px;
         }
-        .nav-links a.active { color:#020617; background:linear-gradient(135deg,var(--yellow),var(--orange)); }
-        .nav-links a:hover { color:white; background:rgba(255,255,255,.10); }
-        .hud { max-width:1220px; margin:0 auto; display:grid; grid-template-columns:1.2fr .95fr; gap:14px; align-items:stretch; }
-        .title-card,.game-meter {
-            border:1px solid var(--border); border-radius:26px; padding:18px 20px; overflow:hidden; position:relative;
-            background:linear-gradient(135deg, rgba(236,72,153,.18), rgba(56,189,248,.12)), rgba(15,23,42,.74);
+
+        .nav-links a.active {
+            color:#020617;
+            background:linear-gradient(135deg,var(--yellow),var(--orange));
         }
-        .title-row { display:flex; justify-content:space-between; align-items:start; gap:16px; position:relative; z-index:1; }
-        .title-card h1 { margin:0; font-size:34px; line-height:1; letter-spacing:-.05em; }
+
+        .nav-links a:hover {
+            color:white;
+            background:rgba(255,255,255,.10);
+        }
+
+        .hud {
+            max-width:1220px;
+            margin:0 auto;
+            display:grid;
+            grid-template-columns:1.2fr .95fr;
+            gap:14px;
+            align-items:stretch;
+        }
+
+        .title-card,
+        .game-meter {
+            border:1px solid var(--border);
+            border-radius:26px;
+            padding:18px 20px;
+            overflow:hidden;
+            position:relative;
+            background:
+                linear-gradient(135deg, rgba(236,72,153,.18), rgba(56,189,248,.12)),
+                rgba(15,23,42,.74);
+        }
+
+        .title-row {
+            display:flex;
+            justify-content:space-between;
+            align-items:start;
+            gap:16px;
+            position:relative;
+            z-index:1;
+        }
+
+        .title-card h1 {
+            margin:0;
+            font-size:34px;
+            line-height:1;
+            letter-spacing:-.05em;
+        }
+
         .score-chip {
-            background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.14); border-radius:999px;
-            padding:8px 13px; font-size:14px; font-weight:950; color:#e0f2fe; white-space:nowrap;
+            background:rgba(255,255,255,.10);
+            border:1px solid rgba(255,255,255,.14);
+            border-radius:999px;
+            padding:8px 13px;
+            font-size:14px;
+            font-weight:950;
+            color:#e0f2fe;
+            white-space:nowrap;
         }
-        .question-clear { position:relative; z-index:1; margin-top:14px; color:#e5e7eb; }
-        .question-kicker { color:var(--yellow); font-size:13px; font-weight:950; text-transform:uppercase; letter-spacing:.12em; margin-bottom:6px; }
-        .question-main { font-size:28px; font-weight:950; line-height:1.12; color:white; letter-spacing:-.04em; margin-bottom:8px; }
-        .question-sub { font-size:17px; line-height:1.4; color:#dbeafe; }
-        .question-sub strong { color:var(--yellow); }
-        .game-meter { background:linear-gradient(135deg, rgba(34,211,238,.10), rgba(236,72,153,.10)), rgba(15,23,42,.82); }
-        .meter-top { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:14px; }
-        .coin-badge { display:flex; align-items:center; gap:10px; background:linear-gradient(135deg, rgba(250,204,21,.22), rgba(251,146,60,.12)); border:1px solid rgba(250,204,21,.32); border-radius:999px; padding:10px 14px; font-weight:950; color:#fde68a; }
-        .coin-icon { width:28px; height:28px; display:grid; place-items:center; border-radius:999px; color:#713f12; background:linear-gradient(135deg,#fde68a,#f59e0b); }
-        .meter-actions { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
-        .meter-reset { border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.08); color:#e5e7eb; border-radius:999px; padding:9px 12px; font-size:13px; }
-        .meter-label-row { display:flex; justify-content:space-between; align-items:end; gap:12px; margin-bottom:9px; }
-        .meter-label,.mini-label { color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.08em; font-weight:950; }
-        .streak-big { font-size:24px; font-weight:950; color:#f9a8d4; letter-spacing:-.05em; }
-        .streak-big span:last-child { color:white; font-size:13px; letter-spacing:0; margin-left:4px; }
-        .power-track { height:18px; background:rgba(2,6,23,.68); border:1px solid rgba(255,255,255,.12); border-radius:999px; overflow:hidden; position:relative; }
-        .power-fill { height:100%; width:0%; border-radius:999px; background:linear-gradient(90deg,var(--green),var(--yellow),var(--orange),var(--pink)); transition:width .35s ease; }
-        .power-glint { position:absolute; inset:0; background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent); width:35%; animation:glint 2.3s infinite linear; }
-        @keyframes glint { from{transform:translateX(-120%)} to{transform:translateX(330%)} }
-        .meter-bottom { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px; }
-        .meter-mini { background:rgba(2,6,23,.38); border:1px solid rgba(255,255,255,.10); border-radius:16px; padding:10px 12px; }
-        .mini-value { font-size:22px; font-weight:950; letter-spacing:-.05em; }
-        .mini-value.reward { color:#86efac; } .mini-value.risk { color:#fca5a5; }
-        .preload-status { max-width:1220px; margin:9px auto 0; font-size:13px; color:#a5b4fc; text-align:right; }
-        .cards { flex:1; display:grid; grid-template-columns:1fr 1fr; min-height:560px; }
-        .card { position:relative; padding:42px; display:flex; flex-direction:column; justify-content:center; text-align:center; overflow:hidden; }
-        .left-card { background:linear-gradient(135deg, rgba(59,130,246,.88), rgba(79,70,229,.96)), #1d4ed8; }
-        .right-card { background:linear-gradient(135deg, rgba(236,72,153,.88), rgba(220,38,38,.96)), #be123c; }
-        .card::before { content:""; position:absolute; inset:0; background:radial-gradient(circle at 25% 20%, rgba(255,255,255,.22), transparent 26%), radial-gradient(circle at 80% 75%, rgba(255,255,255,.14), transparent 30%); }
-        .card-content { position:relative; z-index:1; }
-        .course-code { font-size:52px; font-weight:950; margin-bottom:12px; letter-spacing:-.06em; }
-        .course-name { font-size:22px; margin:0 auto 16px; line-height:1.35; max-width:560px; color:rgba(255,255,255,.92); }
-        .offering { display:inline-block; font-size:19px; color:#f8fafc; margin-bottom:30px; background:rgba(0,0,0,.22); border:1px solid rgba(255,255,255,.22); border-radius:999px; padding:11px 17px; font-weight:900; }
-        .answer-label { font-size:18px; margin-bottom:10px; color:#fef3c7; font-weight:900; text-transform:uppercase; letter-spacing:.07em; }
-        .percent,.hidden-percent { font-size:88px; font-weight:950; margin:12px 0; letter-spacing:-.08em; text-shadow:0 14px 38px rgba(0,0,0,.30); }
-        .buttons { display:flex; justify-content:center; gap:16px; margin-top:28px; }
-        .choice-button { padding:17px 34px; border-radius:999px; font-size:20px; color:#020617; box-shadow:0 14px 34px rgba(0,0,0,.25); }
-        .choice-button.higher { background:linear-gradient(135deg,#bbf7d0,#22c55e); }
-        .choice-button.lower { background:linear-gradient(135deg,#fecaca,#fb7185); }
-        .message { min-height:88px; margin-top:26px; font-size:25px; font-weight:950; line-height:1.35; }
-        .loading { padding:34px; text-align:center; font-size:22px; color:var(--yellow); font-weight:900; }
-        .next-button { margin-top:18px; padding:17px 32px; border-radius:999px; font-size:19px; color:#052e16; background:linear-gradient(135deg,#bef264,#22c55e); box-shadow:0 16px 38px rgba(34,197,94,.35); }
-        .correct-pop { animation:pop .7s ease; color:#bbf7d0; text-shadow:0 0 22px rgba(34,197,94,.9); }
-        .wrong-shake { animation:shake .45s ease; color:#fecaca; text-shadow:0 0 22px rgba(239,68,68,.65); }
-        .winner-card { animation:winnerPulse .9s ease; box-shadow:inset 0 0 110px rgba(250,204,21,.58); }
-        .percent-reveal { animation:revealPercent .65s ease; }
-        .confetti-piece { position:fixed; top:-20px; font-size:24px; z-index:9999; pointer-events:none; animation:confettiFall 1.4s linear forwards; }
 
-        .achievements-floating-button { position:fixed; right:22px; bottom:22px; z-index:9000; border:1px solid rgba(250,204,21,.38); border-radius:999px; padding:14px 18px; font-size:15px; color:#020617; background:linear-gradient(135deg,var(--yellow),var(--orange)); box-shadow:0 18px 44px rgba(250,204,21,.28); }
-        .achievements-overlay { position:fixed; inset:0; z-index:9100; background:rgba(2,6,23,.58); backdrop-filter:blur(6px); opacity:0; pointer-events:none; transition:opacity .2s ease; }
-        .achievements-overlay.show { opacity:1; pointer-events:auto; }
-        .achievements-drawer { position:fixed; top:0; right:0; z-index:9200; width:min(430px,100vw); height:100vh; padding:22px; background:radial-gradient(circle at top left, rgba(250,204,21,.16), transparent 34%), rgba(15,23,42,.98); border-left:1px solid var(--border); box-shadow:-24px 0 70px rgba(0,0,0,.45); transform:translateX(105%); transition:transform .25s ease; overflow-y:auto; }
-        .achievements-drawer.show { transform:translateX(0); }
-        .achievements-drawer-header { display:flex; justify-content:space-between; align-items:start; gap:16px; margin-bottom:18px; }
-        .achievements-drawer-kicker { color:var(--yellow); font-size:12px; font-weight:950; text-transform:uppercase; letter-spacing:.10em; margin-bottom:5px; }
-        .achievements-drawer h2 { margin:0; font-size:32px; font-weight:950; letter-spacing:-.05em; }
-        .achievements-close-button { width:42px; height:42px; display:grid; place-items:center; border-radius:999px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.08); color:white; font-size:30px; line-height:1; }
-        .achievements-list { display:grid; gap:10px; }
-        .achievement-item { display:grid; grid-template-columns:48px 1fr; gap:12px; align-items:center; padding:12px; border-radius:16px; border:1px solid rgba(148,163,184,.14); background:rgba(2,6,23,.50); }
-        .achievement-item.locked { opacity:.48; }
-        .achievement-item.unlocked { border-color:rgba(250,204,21,.36); background:linear-gradient(135deg, rgba(250,204,21,.14), rgba(34,197,94,.08)), rgba(2,6,23,.58); }
-        .achievement-emoji { width:48px; height:48px; display:grid; place-items:center; border-radius:15px; font-size:26px; background:rgba(255,255,255,.08); }
-        .achievement-title { font-size:15px; font-weight:950; color:white; }
-        .achievement-desc { margin-top:3px; font-size:12px; color:#94a3b8; line-height:1.35; }
-        .achievements-reset-button,.leaderboard-reset { width:100%; margin-top:18px; border:1px solid rgba(255,255,255,.14); border-radius:14px; padding:13px 14px; background:rgba(255,255,255,.08); color:#cbd5e1; font-size:15px; }
-        .achievement-toast { position:fixed; right:24px; bottom:84px; z-index:9999; display:flex; align-items:center; gap:14px; width:min(380px,calc(100vw - 32px)); padding:16px; border-radius:22px; background:linear-gradient(135deg, rgba(250,204,21,.20), rgba(34,197,94,.14)), rgba(15,23,42,.96); border:1px solid rgba(250,204,21,.38); box-shadow:0 24px 70px rgba(0,0,0,.45); transform:translateY(130%); opacity:0; pointer-events:none; transition:.35s ease; }
-        .achievement-toast.show { transform:translateY(0); opacity:1; }
-        .achievement-toast-emoji { width:54px; height:54px; display:grid; place-items:center; border-radius:18px; font-size:30px; background:rgba(255,255,255,.10); }
-        .achievement-toast-title { color:#facc15; font-size:12px; font-weight:950; text-transform:uppercase; letter-spacing:.08em; margin-bottom:3px; }
-        .achievement-toast-name { color:white; font-size:19px; font-weight:950; margin-bottom:2px; }
-        .achievement-toast-desc { color:#cbd5e1; font-size:13px; line-height:1.35; }
+        .question-clear {
+            position:relative;
+            z-index:1;
+            margin-top:14px;
+            color:#e5e7eb;
+        }
 
-        .leaderboard-panel { background:rgba(2,6,23,.48); border:1px solid rgba(148,163,184,.18); border-radius:20px; padding:16px; margin-top:16px; }
-        .leaderboard-panel h3 { margin:0 0 12px; font-size:18px; letter-spacing:-.03em; }
-        .leaderboard-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-        .leaderboard-stat { background:rgba(15,23,42,.65); border:1px solid rgba(148,163,184,.14); border-radius:14px; padding:12px; }
-        .leaderboard-label { color:var(--muted); font-size:11px; font-weight:950; text-transform:uppercase; letter-spacing:.08em; margin-bottom:5px; }
-        .leaderboard-value { font-size:20px; font-weight:950; color:white; }
+        .question-kicker {
+            color:var(--yellow);
+            font-size:13px;
+            font-weight:950;
+            text-transform:uppercase;
+            letter-spacing:.12em;
+            margin-bottom:6px;
+        }
 
-        @keyframes pop { 0%{transform:scale(.4);opacity:0} 50%{transform:scale(1.25);opacity:1} 100%{transform:scale(1)} }
-        @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-10px)} 40%{transform:translateX(10px)} 60%{transform:translateX(-8px)} 80%{transform:translateX(8px)} }
-        @keyframes winnerPulse { 0%{transform:scale(1)} 45%{transform:scale(1.025)} 100%{transform:scale(1)} }
-        @keyframes revealPercent { 0%{transform:scale(.3) rotate(-8deg);opacity:0} 60%{transform:scale(1.2) rotate(3deg);opacity:1} 100%{transform:scale(1) rotate(0)} }
-        @keyframes confettiFall { 0%{transform:translateY(0) rotate(0deg);opacity:1} 100%{transform:translateY(110vh) rotate(720deg);opacity:0} }
+        .question-main {
+            font-size:28px;
+            font-weight:950;
+            line-height:1.12;
+            color:white;
+            letter-spacing:-.04em;
+            margin-bottom:8px;
+        }
 
-        @media (max-width:980px){ .hud{grid-template-columns:1fr}.preload-status{text-align:center} }
-        @media (max-width:800px){ .top-shell{padding:12px}.nav-bar{flex-direction:column;gap:12px}.cards{grid-template-columns:1fr}.card{min-height:430px;padding:28px}.course-code{font-size:38px}.percent,.hidden-percent{font-size:64px}.buttons{flex-direction:column;align-items:center}.choice-button{width:min(280px,100%)} }
-        @media (max-width:700px){ .group-grid{grid-template-columns:1fr}.start-card h1{font-size:34px} }
-        @media (max-width:640px){ .achievements-floating-button{right:14px;bottom:14px;padding:12px 14px;font-size:13px}.achievement-toast{right:14px;bottom:72px}.leaderboard-grid{grid-template-columns:1fr} }
-        @media (max-width:560px){ .meter-top{align-items:stretch;flex-direction:column}.meter-actions{justify-content:stretch}.meter-reset{flex:1}.meter-bottom{grid-template-columns:1fr}.title-row{flex-direction:column} }
+        .question-sub {
+            font-size:17px;
+            line-height:1.4;
+            color:#dbeafe;
+        }
+
+        .question-sub strong {
+            color:var(--yellow);
+        }
+
+        .game-meter {
+            background:
+                linear-gradient(135deg, rgba(34,211,238,.10), rgba(236,72,153,.10)),
+                rgba(15,23,42,.82);
+        }
+
+        .meter-top {
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            gap:12px;
+            margin-bottom:14px;
+        }
+
+        .coin-badge {
+            display:flex;
+            align-items:center;
+            gap:10px;
+            background:linear-gradient(135deg, rgba(250,204,21,.22), rgba(251,146,60,.12));
+            border:1px solid rgba(250,204,21,.32);
+            border-radius:999px;
+            padding:10px 14px;
+            font-weight:950;
+            color:#fde68a;
+        }
+
+        .coin-icon {
+            width:28px;
+            height:28px;
+            display:grid;
+            place-items:center;
+            border-radius:999px;
+            color:#713f12;
+            background:linear-gradient(135deg,#fde68a,#f59e0b);
+        }
+
+        .meter-actions {
+            display:flex;
+            gap:8px;
+            flex-wrap:wrap;
+            justify-content:flex-end;
+        }
+
+        .meter-reset {
+            border:1px solid rgba(255,255,255,.16);
+            background:rgba(255,255,255,.08);
+            color:#e5e7eb;
+            border-radius:999px;
+            padding:9px 12px;
+            font-size:13px;
+        }
+
+        .meter-label-row {
+            display:flex;
+            justify-content:space-between;
+            align-items:end;
+            gap:12px;
+            margin-bottom:9px;
+        }
+
+        .meter-label,
+        .mini-label {
+            color:var(--muted);
+            font-size:11px;
+            text-transform:uppercase;
+            letter-spacing:.08em;
+            font-weight:950;
+        }
+
+        .streak-big {
+            font-size:24px;
+            font-weight:950;
+            color:#f9a8d4;
+            letter-spacing:-.05em;
+        }
+
+        .streak-big span:last-child {
+            color:white;
+            font-size:13px;
+            letter-spacing:0;
+            margin-left:4px;
+        }
+
+        .power-track {
+            height:18px;
+            background:rgba(2,6,23,.68);
+            border:1px solid rgba(255,255,255,.12);
+            border-radius:999px;
+            overflow:hidden;
+            position:relative;
+        }
+
+        .power-fill {
+            height:100%;
+            width:0%;
+            border-radius:999px;
+            background:linear-gradient(90deg,var(--green),var(--yellow),var(--orange),var(--pink));
+            transition:width .35s ease;
+        }
+
+        .power-glint {
+            position:absolute;
+            inset:0;
+            background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);
+            width:35%;
+            animation:glint 2.3s infinite linear;
+        }
+
+        @keyframes glint {
+            from { transform:translateX(-120%); }
+            to { transform:translateX(330%); }
+        }
+
+        .meter-bottom {
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:10px;
+            margin-top:12px;
+        }
+
+        .meter-mini {
+            background:rgba(2,6,23,.38);
+            border:1px solid rgba(255,255,255,.10);
+            border-radius:16px;
+            padding:10px 12px;
+        }
+
+        .mini-value {
+            font-size:22px;
+            font-weight:950;
+            letter-spacing:-.05em;
+        }
+
+        .mini-value.reward {
+            color:#86efac;
+        }
+
+        .mini-value.risk {
+            color:#fca5a5;
+        }
+
+        .preload-status {
+            max-width:1220px;
+            margin:9px auto 0;
+            font-size:13px;
+            color:#a5b4fc;
+            text-align:right;
+        }
+
+        .cards {
+            flex:1;
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            min-height:560px;
+            overflow:hidden;
+        }
+
+        .card {
+            position:relative;
+            padding:42px;
+            display:flex;
+            flex-direction:column;
+            justify-content:center;
+            text-align:center;
+            overflow:hidden;
+            transition:
+                transform .9s cubic-bezier(0.22, 1, 0.36, 1),
+                opacity .9s ease;
+        }
+
+        .left-card {
+            background:linear-gradient(135deg, rgba(59,130,246,.88), rgba(79,70,229,.96)), #1d4ed8;
+        }
+
+        .right-card {
+            background:linear-gradient(135deg, rgba(236,72,153,.88), rgba(220,38,38,.96)), #be123c;
+        }
+
+        .card::before {
+            content:"";
+            position:absolute;
+            inset:0;
+            background:
+                radial-gradient(circle at 25% 20%, rgba(255,255,255,.22), transparent 26%),
+                radial-gradient(circle at 80% 75%, rgba(255,255,255,.14), transparent 30%);
+        }
+
+        .card-content {
+            position:relative;
+            z-index:1;
+        }
+
+        .course-code {
+            font-size:52px;
+            font-weight:950;
+            margin-bottom:12px;
+            letter-spacing:-.06em;
+        }
+
+        .course-name {
+            font-size:22px;
+            margin:0 auto 16px;
+            line-height:1.35;
+            max-width:560px;
+            color:rgba(255,255,255,.92);
+        }
+
+        .offering {
+            display:inline-block;
+            font-size:19px;
+            color:#f8fafc;
+            margin-bottom:30px;
+            background:rgba(0,0,0,.22);
+            border:1px solid rgba(255,255,255,.22);
+            border-radius:999px;
+            padding:11px 17px;
+            font-weight:900;
+        }
+
+        .answer-label {
+            font-size:18px;
+            margin-bottom:10px;
+            color:#fef3c7;
+            font-weight:900;
+            text-transform:uppercase;
+            letter-spacing:.07em;
+        }
+
+        .percent,
+        .hidden-percent {
+            font-size:88px;
+            font-weight:950;
+            margin:12px 0;
+            letter-spacing:-.08em;
+            text-shadow:0 14px 38px rgba(0,0,0,.30);
+        }
+
+        .buttons {
+            display:flex;
+            justify-content:center;
+            gap:16px;
+            margin-top:28px;
+        }
+
+        .choice-button {
+            padding:17px 34px;
+            border-radius:999px;
+            font-size:20px;
+            color:#020617;
+            box-shadow:0 14px 34px rgba(0,0,0,.25);
+        }
+
+        .choice-button.higher {
+            background:linear-gradient(135deg,#bbf7d0,#22c55e);
+        }
+
+        .choice-button.lower {
+            background:linear-gradient(135deg,#fecaca,#fb7185);
+        }
+
+        .message {
+            min-height:88px;
+            margin-top:26px;
+            font-size:25px;
+            font-weight:950;
+            line-height:1.35;
+        }
+
+        .loading {
+            padding:34px;
+            text-align:center;
+            font-size:22px;
+            color:var(--yellow);
+            font-weight:900;
+        }
+
+        .next-button {
+            margin-top:18px;
+            padding:17px 32px;
+            border-radius:999px;
+            font-size:19px;
+            color:#052e16;
+            background:linear-gradient(135deg,#bef264,#22c55e);
+            box-shadow:0 16px 38px rgba(34,197,94,.35);
+        }
+
+        .correct-pop {
+            animation:pop .7s ease;
+            color:#bbf7d0;
+            text-shadow:0 0 22px rgba(34,197,94,.9);
+        }
+
+        .wrong-shake {
+            animation:shake .45s ease;
+            color:#fecaca;
+            text-shadow:0 0 22px rgba(239,68,68,.65);
+        }
+
+        .winner-card {
+            animation:winnerPulse .9s ease;
+            box-shadow:inset 0 0 110px rgba(250,204,21,.58);
+        }
+
+        .percent-reveal {
+            animation:revealPercent .9s ease;
+        }
+
+        .chain-slide-old-out {
+            animation:chainSlideOldOut 1.15s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        .chain-slide-to-left {
+            animation:chainSlideToLeft 1.15s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            z-index:3;
+        }
+
+        .chain-slide-in {
+            animation:chainSlideIn 1.05s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .confetti-piece {
+            position:fixed;
+            top:-20px;
+            font-size:24px;
+            z-index:9999;
+            pointer-events:none;
+            animation:confettiFall 1.4s linear forwards;
+        }
+
+        .achievements-floating-button {
+            position:fixed;
+            right:22px;
+            bottom:22px;
+            z-index:9000;
+            border:1px solid rgba(250,204,21,.38);
+            border-radius:999px;
+            padding:14px 18px;
+            font-size:15px;
+            color:#020617;
+            background:linear-gradient(135deg,var(--yellow),var(--orange));
+            box-shadow:0 18px 44px rgba(250,204,21,.28);
+        }
+
+        .achievements-overlay {
+            position:fixed;
+            inset:0;
+            z-index:9100;
+            background:rgba(2,6,23,.58);
+            backdrop-filter:blur(6px);
+            opacity:0;
+            pointer-events:none;
+            transition:opacity .2s ease;
+        }
+
+        .achievements-overlay.show {
+            opacity:1;
+            pointer-events:auto;
+        }
+
+        .achievements-drawer {
+            position:fixed;
+            top:0;
+            right:0;
+            z-index:9200;
+            width:min(430px,100vw);
+            height:100vh;
+            padding:22px;
+            background:
+                radial-gradient(circle at top left, rgba(250,204,21,.16), transparent 34%),
+                rgba(15,23,42,.98);
+            border-left:1px solid var(--border);
+            box-shadow:-24px 0 70px rgba(0,0,0,.45);
+            transform:translateX(105%);
+            transition:transform .25s ease;
+            overflow-y:auto;
+        }
+
+        .achievements-drawer.show {
+            transform:translateX(0);
+        }
+
+        .achievements-drawer-header {
+            display:flex;
+            justify-content:space-between;
+            align-items:start;
+            gap:16px;
+            margin-bottom:18px;
+        }
+
+        .achievements-drawer-kicker {
+            color:var(--yellow);
+            font-size:12px;
+            font-weight:950;
+            text-transform:uppercase;
+            letter-spacing:.10em;
+            margin-bottom:5px;
+        }
+
+        .achievements-drawer h2 {
+            margin:0;
+            font-size:32px;
+            font-weight:950;
+            letter-spacing:-.05em;
+        }
+
+        .achievements-close-button {
+            width:42px;
+            height:42px;
+            display:grid;
+            place-items:center;
+            border-radius:999px;
+            border:1px solid rgba(255,255,255,.14);
+            background:rgba(255,255,255,.08);
+            color:white;
+            font-size:30px;
+            line-height:1;
+        }
+
+        .achievements-list {
+            display:grid;
+            gap:10px;
+        }
+
+        .achievement-item {
+            display:grid;
+            grid-template-columns:48px 1fr;
+            gap:12px;
+            align-items:center;
+            padding:12px;
+            border-radius:16px;
+            border:1px solid rgba(148,163,184,.14);
+            background:rgba(2,6,23,.50);
+        }
+
+        .achievement-item.locked {
+            opacity:.48;
+        }
+
+        .achievement-item.unlocked {
+            border-color:rgba(250,204,21,.36);
+            background:
+                linear-gradient(135deg, rgba(250,204,21,.14), rgba(34,197,94,.08)),
+                rgba(2,6,23,.58);
+        }
+
+        .achievement-emoji {
+            width:48px;
+            height:48px;
+            display:grid;
+            place-items:center;
+            border-radius:15px;
+            font-size:26px;
+            background:rgba(255,255,255,.08);
+        }
+
+        .achievement-title {
+            font-size:15px;
+            font-weight:950;
+            color:white;
+        }
+
+        .achievement-desc {
+            margin-top:3px;
+            font-size:12px;
+            color:#94a3b8;
+            line-height:1.35;
+        }
+
+        .achievements-reset-button,
+        .leaderboard-reset {
+            width:100%;
+            margin-top:18px;
+            border:1px solid rgba(255,255,255,.14);
+            border-radius:14px;
+            padding:13px 14px;
+            background:rgba(255,255,255,.08);
+            color:#cbd5e1;
+            font-size:15px;
+        }
+
+        .achievement-toast {
+            position:fixed;
+            right:24px;
+            bottom:84px;
+            z-index:9999;
+            display:flex;
+            align-items:center;
+            gap:14px;
+            width:min(380px,calc(100vw - 32px));
+            padding:16px;
+            border-radius:22px;
+            background:
+                linear-gradient(135deg, rgba(250,204,21,.20), rgba(34,197,94,.14)),
+                rgba(15,23,42,.96);
+            border:1px solid rgba(250,204,21,.38);
+            box-shadow:0 24px 70px rgba(0,0,0,.45);
+            transform:translateY(130%);
+            opacity:0;
+            pointer-events:none;
+            transition:.35s ease;
+        }
+
+        .achievement-toast.show {
+            transform:translateY(0);
+            opacity:1;
+        }
+
+        .achievement-toast-emoji {
+            width:54px;
+            height:54px;
+            display:grid;
+            place-items:center;
+            border-radius:18px;
+            font-size:30px;
+            background:rgba(255,255,255,.10);
+        }
+
+        .achievement-toast-title {
+            color:#facc15;
+            font-size:12px;
+            font-weight:950;
+            text-transform:uppercase;
+            letter-spacing:.08em;
+            margin-bottom:3px;
+        }
+
+        .achievement-toast-name {
+            color:white;
+            font-size:19px;
+            font-weight:950;
+            margin-bottom:2px;
+        }
+
+        .achievement-toast-desc {
+            color:#cbd5e1;
+            font-size:13px;
+            line-height:1.35;
+        }
+
+        .leaderboard-panel {
+            background:rgba(2,6,23,.48);
+            border:1px solid rgba(148,163,184,.18);
+            border-radius:20px;
+            padding:16px;
+            margin-top:16px;
+        }
+
+        .leaderboard-panel h3 {
+            margin:0 0 12px;
+            font-size:18px;
+            letter-spacing:-.03em;
+        }
+
+        .leaderboard-grid {
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:10px;
+        }
+
+        .leaderboard-stat {
+            background:rgba(15,23,42,.65);
+            border:1px solid rgba(148,163,184,.14);
+            border-radius:14px;
+            padding:12px;
+        }
+
+        .leaderboard-label {
+            color:var(--muted);
+            font-size:11px;
+            font-weight:950;
+            text-transform:uppercase;
+            letter-spacing:.08em;
+            margin-bottom:5px;
+        }
+
+        .leaderboard-value {
+            font-size:20px;
+            font-weight:950;
+            color:white;
+        }
+
+        @keyframes pop {
+            0% { transform:scale(.4); opacity:0; }
+            50% { transform:scale(1.25); opacity:1; }
+            100% { transform:scale(1); }
+        }
+
+        @keyframes shake {
+            0%,100% { transform:translateX(0); }
+            20% { transform:translateX(-10px); }
+            40% { transform:translateX(10px); }
+            60% { transform:translateX(-8px); }
+            80% { transform:translateX(8px); }
+        }
+
+        @keyframes winnerPulse {
+            0% { transform:scale(1); }
+            45% { transform:scale(1.025); }
+            100% { transform:scale(1); }
+        }
+
+        @keyframes revealPercent {
+            0% {
+                transform:scale(.3) rotate(-8deg);
+                opacity:0;
+            }
+            60% {
+                transform:scale(1.15) rotate(2deg);
+                opacity:1;
+            }
+            100% {
+                transform:scale(1) rotate(0);
+            }
+        }
+
+        @keyframes chainSlideOldOut {
+            0% {
+                transform:translateX(0) scale(1);
+                opacity:1;
+                filter:blur(0);
+            }
+            40% {
+                transform:translateX(-18%) scale(0.97);
+                opacity:.75;
+                filter:blur(1px);
+            }
+            100% {
+                transform:translateX(-115%) scale(0.9);
+                opacity:0;
+                filter:blur(8px);
+            }
+        }
+
+        @keyframes chainSlideToLeft {
+            0% {
+                transform:translateX(0) scale(1);
+                opacity:1;
+                filter:blur(0);
+            }
+            55% {
+                transform:translateX(-54%) scale(1.03);
+                opacity:1;
+                filter:blur(0);
+            }
+            100% {
+                transform:translateX(-100%) scale(1);
+                opacity:1;
+                filter:blur(0);
+            }
+        }
+
+        @keyframes chainSlideIn {
+            0% {
+                transform:translateX(110%) scale(0.94);
+                opacity:0;
+                filter:blur(8px);
+            }
+            65% {
+                transform:translateX(-4%) scale(1.01);
+                opacity:1;
+                filter:blur(0);
+            }
+            100% {
+                transform:translateX(0) scale(1);
+                opacity:1;
+                filter:blur(0);
+            }
+        }
+
+        @keyframes confettiFall {
+            0% {
+                transform:translateY(0) rotate(0deg);
+                opacity:1;
+            }
+            100% {
+                transform:translateY(110vh) rotate(720deg);
+                opacity:0;
+            }
+        }
+
+        @media (max-width:980px) {
+            .hud {
+                grid-template-columns:1fr;
+            }
+
+            .preload-status {
+                text-align:center;
+            }
+        }
+
+        @media (max-width:800px) {
+            .top-shell {
+                padding:12px;
+            }
+
+            .nav-bar {
+                flex-direction:column;
+                gap:12px;
+            }
+
+            .cards {
+                grid-template-columns:1fr;
+            }
+
+            .card {
+                min-height:430px;
+                padding:28px;
+            }
+
+            .course-code {
+                font-size:38px;
+            }
+
+            .percent,
+            .hidden-percent {
+                font-size:64px;
+            }
+
+            .buttons {
+                flex-direction:column;
+                align-items:center;
+            }
+
+            .choice-button {
+                width:min(280px,100%);
+            }
+
+            @keyframes chainSlideToLeft {
+                0% {
+                    transform:translateY(0) scale(1);
+                    opacity:1;
+                    filter:blur(0);
+                }
+                100% {
+                    transform:translateY(-100%) scale(1);
+                    opacity:1;
+                    filter:blur(0);
+                }
+            }
+
+            @keyframes chainSlideOldOut {
+                0% {
+                    transform:translateY(0) scale(1);
+                    opacity:1;
+                    filter:blur(0);
+                }
+                100% {
+                    transform:translateY(-110%) scale(0.9);
+                    opacity:0;
+                    filter:blur(8px);
+                }
+            }
+
+            @keyframes chainSlideIn {
+                0% {
+                    transform:translateY(110%) scale(0.94);
+                    opacity:0;
+                    filter:blur(8px);
+                }
+                100% {
+                    transform:translateY(0) scale(1);
+                    opacity:1;
+                    filter:blur(0);
+                }
+            }
+        }
+
+        @media (max-width:700px) {
+            .group-grid {
+                grid-template-columns:1fr;
+            }
+
+            .start-card h1 {
+                font-size:34px;
+            }
+        }
+
+        @media (max-width:640px) {
+            .achievements-floating-button {
+                right:14px;
+                bottom:14px;
+                padding:12px 14px;
+                font-size:13px;
+            }
+
+            .achievement-toast {
+                right:14px;
+                bottom:72px;
+            }
+
+            .leaderboard-grid {
+                grid-template-columns:1fr;
+            }
+        }
+
+        @media (max-width:560px) {
+            .meter-top {
+                align-items:stretch;
+                flex-direction:column;
+            }
+
+            .meter-actions {
+                justify-content:stretch;
+            }
+
+            .meter-reset {
+                flex:1;
+            }
+
+            .meter-bottom {
+                grid-template-columns:1fr;
+            }
+
+            .title-row {
+                flex-direction:column;
+            }
+        }
     </style>
 </head>
+
 <body>
     <div class="game">
         <div class="start-screen" id="startScreen">
@@ -177,7 +1118,9 @@
                 <div class="brand-big">SECaT <span>Arcade</span></div>
                 <h1>Choose Your Course Mix</h1>
                 <p>Pick at least one course list. The game will only compare courses from your selected areas.</p>
+
                 <div class="group-grid" id="courseGroupGrid">Loading course lists...</div>
+
                 <button class="start-button" onclick="startGame()">Start Game</button>
                 <div class="start-message" id="startMessage"></div>
             </div>
@@ -208,6 +1151,7 @@
                                 <div class="coin-icon">🪙</div>
                                 <div class="wallet-balance">0 SC</div>
                             </div>
+
                             <div class="meter-actions">
                                 <button class="meter-reset" onclick="resetStreak()">Reset Risk ↻</button>
                                 <button class="meter-reset" onclick="changeCourseMix()">Change Mix</button>
@@ -218,19 +1162,25 @@
                             <div class="meter-label-row">
                                 <div>
                                     <div class="meter-label">Streak Power</div>
-                                    <div class="streak-big"><span id="streakValue">0</span><span>streak</span></div>
+                                    <div class="streak-big">
+                                        <span id="streakValue">0</span><span>streak</span>
+                                    </div>
                                 </div>
+
                                 <div class="meter-label" id="meterStatus">Safe Mode</div>
                             </div>
+
                             <div class="power-track">
                                 <div class="power-fill" id="powerFill"></div>
                                 <div class="power-glint"></div>
                             </div>
+
                             <div class="meter-bottom">
                                 <div class="meter-mini">
                                     <div class="mini-label">Next win</div>
                                     <div class="mini-value reward" id="nextRewardValue">+50 SC</div>
                                 </div>
+
                                 <div class="meter-mini">
                                     <div class="mini-label">If wrong</div>
                                     <div class="mini-value risk" id="nextLossValue">-15 SC</div>
@@ -239,10 +1189,13 @@
                         </div>
                     </div>
                 </div>
+
                 <div class="preload-status" id="preloadStatus"></div>
             </div>
 
-            <div id="loading" class="loading">Loading a random SECaT round... this can take a few seconds.</div>
+            <div id="loading" class="loading">
+                Loading a random SECaT round... this can take a few seconds.
+            </div>
 
             <div class="cards" id="cards" style="display:none;">
                 <div class="card left-card" id="leftCard">
@@ -264,12 +1217,22 @@
                         <div class="answer-label">Had</div>
                         <div class="hidden-percent" id="rightPercent">?</div>
                         <div class="answer-label" id="rightAnswer"></div>
+
                         <div class="buttons" id="choiceButtons">
                             <button class="choice-button higher" onclick="makeGuess('higher')">Higher</button>
                             <button class="choice-button lower" onclick="makeGuess('lower')">Lower</button>
                         </div>
+
                         <div class="message" id="message"></div>
-                        <button class="next-button" id="nextButton" onclick="loadRound()" style="display:none;">Next Round</button>
+
+                        <button
+                            class="next-button"
+                            id="nextButton"
+                            onclick="loadRound()"
+                            style="display:none;"
+                        >
+                            New Chain
+                        </button>
                     </div>
                 </div>
             </div>
@@ -277,7 +1240,9 @@
     </div>
 
     <button class="achievements-floating-button" onclick="toggleAchievementsMenu()">🏆 Achievements</button>
+
     <div class="achievements-overlay" id="achievementsOverlay" onclick="closeAchievementsMenu()"></div>
+
     <div class="achievements-drawer" id="achievementsDrawer">
         <div class="achievements-drawer-header">
             <div>
@@ -291,60 +1256,137 @@
 
         <div class="leaderboard-panel">
             <h3>Player statistics</h3>
+
             <div class="leaderboard-grid">
-                <div class="leaderboard-stat"><div class="leaderboard-label">Best Streak</div><div class="leaderboard-value" id="bestStreakValue">0</div></div>
-                <div class="leaderboard-stat"><div class="leaderboard-label">Total Coins Earned</div><div class="leaderboard-value" id="totalCoinsEarnedValue">0 SC</div></div>
-                <div class="leaderboard-stat"><div class="leaderboard-label">Biggest Market Profit</div><div class="leaderboard-value" id="biggestMarketProfitValue">0 SC</div></div>
-                <div class="leaderboard-stat"><div class="leaderboard-label">Total Bets Placed</div><div class="leaderboard-value" id="totalBetsPlacedValue">0</div></div>
+                <div class="leaderboard-stat">
+                    <div class="leaderboard-label">Best Streak</div>
+                    <div class="leaderboard-value" id="bestStreakValue">0</div>
+                </div>
+
+                <div class="leaderboard-stat">
+                    <div class="leaderboard-label">Total Coins Earned</div>
+                    <div class="leaderboard-value" id="totalCoinsEarnedValue">0 SC</div>
+                </div>
+
+                <div class="leaderboard-stat">
+                    <div class="leaderboard-label">Biggest Market Profit</div>
+                    <div class="leaderboard-value" id="biggestMarketProfitValue">0 SC</div>
+                </div>
+
+                <div class="leaderboard-stat">
+                    <div class="leaderboard-label">Total Bets Placed</div>
+                    <div class="leaderboard-value" id="totalBetsPlacedValue">0</div>
+                </div>
             </div>
-            <button class="leaderboard-reset" onclick="resetLeaderboard()">Reset Player statistics</button>
+
+            <button class="leaderboard-reset" onclick="resetLeaderboard()">
+                Reset Player statistics
+            </button>
         </div>
 
-        <button class="achievements-reset-button" onclick="resetAchievements()">Reset Achievements</button>
+        <button class="achievements-reset-button" onclick="resetAchievements()">
+            Reset Achievements
+        </button>
     </div>
 
     <script>
         const WALLET_KEY = "secat_coin_balance";
         const STARTING_BALANCE = 500;
+
         const BASE_WIN_REWARD = 50;
         const BASE_LOSS_PENALTY = 15;
         const MULTIPLIER_STEP = 0.25;
         const MAX_MULTIPLIER = 5;
         const LOSS_STREAK_STEP = 0.25;
         const MAX_LOSS_MULTIPLIER = 4;
+
         const ACHIEVEMENTS_KEY = "secat_achievements";
         const LEADERBOARD_KEY = "secat_local_leaderboard";
 
         const ACHIEVEMENTS = {
-            first_win:{title:"First Win",description:"Win your first Higher or Lower round.",emoji:"🎯"},
-            streak_3:{title:"Hot Start",description:"Reach a streak of 3.",emoji:"🔥"},
-            streak_5:{title:"Course Whisperer",description:"Reach a streak of 5.",emoji:"🧠"},
-            streak_10:{title:"SECaT Prophet",description:"Reach a streak of 10.",emoji:"🔮"},
-            coin_collector:{title:"Coin Collector",description:"Reach 1,000 SECaT Coins.",emoji:"🪙"},
-            rich_student:{title:"Rich Student",description:"Reach 5,000 SECaT Coins.",emoji:"💰"},
-            first_bet:{title:"First Bet",description:"Place your first prediction market bet.",emoji:"📈"},
-            market_maker:{title:"Market Maker",description:"Place 5 prediction market bets.",emoji:"🏦"},
-            live_trader:{title:"Live Trader",description:"Place a bet in a live market.",emoji:"⚡"},
-            big_spender:{title:"Big Spender",description:"Place a bet of 500 SC or more.",emoji:"🐋"},
-            diamond_hands:{title:"Diamond Hands",description:"Have 3 open bets at once.",emoji:"💎"},
-            profit_hunter:{title:"Profit Hunter",description:"Win a settled market bet.",emoji:"🚀"}
+            first_win: {
+                title: "First Win",
+                description: "Win your first Higher or Lower round.",
+                emoji: "🎯"
+            },
+            streak_3: {
+                title: "Hot Start",
+                description: "Reach a streak of 3.",
+                emoji: "🔥"
+            },
+            streak_5: {
+                title: "Course Whisperer",
+                description: "Reach a streak of 5.",
+                emoji: "🧠"
+            },
+            streak_10: {
+                title: "SECaT Prophet",
+                description: "Reach a streak of 10.",
+                emoji: "🔮"
+            },
+            coin_collector: {
+                title: "Coin Collector",
+                description: "Reach 1,000 SECaT Coins.",
+                emoji: "🪙"
+            },
+            rich_student: {
+                title: "Rich Student",
+                description: "Reach 5,000 SECaT Coins.",
+                emoji: "💰"
+            },
+            first_bet: {
+                title: "First Bet",
+                description: "Place your first prediction market bet.",
+                emoji: "📈"
+            },
+            market_maker: {
+                title: "Market Maker",
+                description: "Place 5 prediction market bets.",
+                emoji: "🏦"
+            },
+            live_trader: {
+                title: "Live Trader",
+                description: "Place a bet in a live market.",
+                emoji: "⚡"
+            },
+            big_spender: {
+                title: "Big Spender",
+                description: "Place a bet of 500 SC or more.",
+                emoji: "🐋"
+            },
+            diamond_hands: {
+                title: "Diamond Hands",
+                description: "Have 3 open bets at once.",
+                emoji: "💎"
+            },
+            profit_hunter: {
+                title: "Profit Hunter",
+                description: "Win a settled market bet.",
+                emoji: "🚀"
+            }
         };
 
         let currentRound = null;
-        let nextRoundPromise = null;
-        let nextRoundData = null;
+
         let score = 0;
         let roundsPlayed = 0;
         let currentStreak = 0;
         let gameOver = false;
+
         let selectedCourseGroups = [];
+        let usedOfferingLabels = [];
+
+        let chainQuestionNum = null;
+        let chainAnswerNum = null;
 
         function getWalletBalance() {
             const stored = localStorage.getItem(WALLET_KEY);
+
             if (stored === null) {
                 localStorage.setItem(WALLET_KEY, STARTING_BALANCE);
                 return STARTING_BALANCE;
             }
+
             return Number(stored);
         }
 
@@ -368,7 +1410,11 @@
 
         function getUnlockedAchievements() {
             const saved = localStorage.getItem(ACHIEVEMENTS_KEY);
-            if (saved === null) return {};
+
+            if (saved === null) {
+                return {};
+            }
+
             try {
                 const parsed = JSON.parse(saved);
                 return typeof parsed === "object" && parsed !== null ? parsed : {};
@@ -383,12 +1429,21 @@
 
         function unlockAchievement(id) {
             const achievement = ACHIEVEMENTS[id];
-            if (!achievement) return;
+
+            if (!achievement) {
+                return;
+            }
 
             const unlocked = getUnlockedAchievements();
-            if (unlocked[id]) return;
 
-            unlocked[id] = { unlockedAt: new Date().toISOString() };
+            if (unlocked[id]) {
+                return;
+            }
+
+            unlocked[id] = {
+                unlockedAt: new Date().toISOString()
+            };
+
             saveUnlockedAchievements(unlocked);
             showAchievementToast(achievement);
             renderAchievementsPanel();
@@ -396,12 +1451,14 @@
 
         function showAchievementToast(achievement) {
             let toast = document.getElementById("achievementToast");
+
             if (toast === null) {
                 toast = document.createElement("div");
                 toast.id = "achievementToast";
                 toast.className = "achievement-toast";
                 document.body.appendChild(toast);
             }
+
             toast.innerHTML = `
                 <div class="achievement-toast-emoji">${achievement.emoji}</div>
                 <div>
@@ -410,13 +1467,20 @@
                     <div class="achievement-toast-desc">${achievement.description}</div>
                 </div>
             `;
+
             toast.classList.add("show");
-            setTimeout(() => toast.classList.remove("show"), 3300);
+
+            setTimeout(() => {
+                toast.classList.remove("show");
+            }, 3300);
         }
 
         function renderAchievementsPanel() {
             const panel = document.getElementById("achievementsList");
-            if (panel === null) return;
+
+            if (panel === null) {
+                return;
+            }
 
             const unlocked = getUnlockedAchievements();
             panel.innerHTML = "";
@@ -424,8 +1488,12 @@
             Object.keys(ACHIEVEMENTS).forEach(id => {
                 const achievement = ACHIEVEMENTS[id];
                 const isUnlocked = Boolean(unlocked[id]);
+
                 const item = document.createElement("div");
-                item.className = isUnlocked ? "achievement-item unlocked" : "achievement-item locked";
+                item.className = isUnlocked
+                    ? "achievement-item unlocked"
+                    : "achievement-item locked";
+
                 item.innerHTML = `
                     <div class="achievement-emoji">${isUnlocked ? achievement.emoji : "🔒"}</div>
                     <div>
@@ -433,6 +1501,7 @@
                         <div class="achievement-desc">${achievement.description}</div>
                     </div>
                 `;
+
                 panel.appendChild(item);
             });
         }
@@ -451,23 +1520,40 @@
 
         function checkWalletAchievements() {
             const balance = getWalletBalance();
-            if (balance >= 1000) unlockAchievement("coin_collector");
-            if (balance >= 5000) unlockAchievement("rich_student");
+
+            if (balance >= 1000) {
+                unlockAchievement("coin_collector");
+            }
+
+            if (balance >= 5000) {
+                unlockAchievement("rich_student");
+            }
         }
 
         function resetAchievements() {
-            if (!confirm("Reset all achievements?")) return;
+            if (!confirm("Reset all achievements?")) {
+                return;
+            }
+
             localStorage.removeItem(ACHIEVEMENTS_KEY);
             renderAchievementsPanel();
         }
 
         function getLeaderboard() {
             const saved = localStorage.getItem(LEADERBOARD_KEY);
+
             if (saved === null) {
-                return { bestStreak:0, totalCoinsEarned:0, biggestMarketProfit:0, totalBetsPlaced:0 };
+                return {
+                    bestStreak: 0,
+                    totalCoinsEarned: 0,
+                    biggestMarketProfit: 0,
+                    totalBetsPlaced: 0
+                };
             }
+
             try {
                 const parsed = JSON.parse(saved);
+
                 return {
                     bestStreak: Number(parsed.bestStreak || 0),
                     totalCoinsEarned: Number(parsed.totalCoinsEarned || 0),
@@ -475,7 +1561,12 @@
                     totalBetsPlaced: Number(parsed.totalBetsPlaced || 0)
                 };
             } catch (error) {
-                return { bestStreak:0, totalCoinsEarned:0, biggestMarketProfit:0, totalBetsPlaced:0 };
+                return {
+                    bestStreak: 0,
+                    totalCoinsEarned: 0,
+                    biggestMarketProfit: 0,
+                    totalBetsPlaced: 0
+                };
             }
         }
 
@@ -486,19 +1577,34 @@
 
         function renderLeaderboard() {
             const leaderboard = getLeaderboard();
+
             const bestStreakElement = document.getElementById("bestStreakValue");
             const totalCoinsElement = document.getElementById("totalCoinsEarnedValue");
             const biggestProfitElement = document.getElementById("biggestMarketProfitValue");
             const totalBetsElement = document.getElementById("totalBetsPlacedValue");
 
-            if (bestStreakElement) bestStreakElement.innerText = leaderboard.bestStreak;
-            if (totalCoinsElement) totalCoinsElement.innerText = Math.round(leaderboard.totalCoinsEarned) + " SC";
-            if (biggestProfitElement) biggestProfitElement.innerText = Math.round(leaderboard.biggestMarketProfit) + " SC";
-            if (totalBetsElement) totalBetsElement.innerText = leaderboard.totalBetsPlaced;
+            if (bestStreakElement) {
+                bestStreakElement.innerText = leaderboard.bestStreak;
+            }
+
+            if (totalCoinsElement) {
+                totalCoinsElement.innerText =
+                    Math.round(leaderboard.totalCoinsEarned) + " SC";
+            }
+
+            if (biggestProfitElement) {
+                biggestProfitElement.innerText =
+                    Math.round(leaderboard.biggestMarketProfit) + " SC";
+            }
+
+            if (totalBetsElement) {
+                totalBetsElement.innerText = leaderboard.totalBetsPlaced;
+            }
         }
 
         function updateBestStreak(streak) {
             const leaderboard = getLeaderboard();
+
             if (streak > leaderboard.bestStreak) {
                 leaderboard.bestStreak = streak;
                 saveLeaderboard(leaderboard);
@@ -506,60 +1612,104 @@
         }
 
         function addCoinsToLeaderboard(amount) {
-            if (amount <= 0) return;
+            if (amount <= 0) {
+                return;
+            }
+
             const leaderboard = getLeaderboard();
             leaderboard.totalCoinsEarned += amount;
             saveLeaderboard(leaderboard);
         }
 
         function resetLeaderboard() {
-            if (!confirm("Reset your player statistics?")) return;
+            if (!confirm("Reset your player statistics?")) {
+                return;
+            }
+
             localStorage.removeItem(LEADERBOARD_KEY);
             renderLeaderboard();
         }
 
-        function getCurrentMultiplier() { return Math.min(MAX_MULTIPLIER, 1 + currentStreak * MULTIPLIER_STEP); }
-        function getLossMultiplier() { return Math.min(MAX_LOSS_MULTIPLIER, 1 + currentStreak * LOSS_STREAK_STEP); }
-        function getCurrentReward() { return Math.round(BASE_WIN_REWARD * getCurrentMultiplier()); }
-        function getCurrentLossPenalty() { return Math.round(BASE_LOSS_PENALTY * getLossMultiplier()); }
-        function getPowerPercent() { return Math.min(100, ((getCurrentMultiplier() - 1) / (MAX_MULTIPLIER - 1)) * 100); }
+        function getCurrentMultiplier() {
+            return Math.min(MAX_MULTIPLIER, 1 + currentStreak * MULTIPLIER_STEP);
+        }
+
+        function getLossMultiplier() {
+            return Math.min(MAX_LOSS_MULTIPLIER, 1 + currentStreak * LOSS_STREAK_STEP);
+        }
+
+        function getCurrentReward() {
+            return Math.round(BASE_WIN_REWARD * getCurrentMultiplier());
+        }
+
+        function getCurrentLossPenalty() {
+            return Math.round(BASE_LOSS_PENALTY * getLossMultiplier());
+        }
+
+        function getPowerPercent() {
+            return Math.min(
+                100,
+                ((getCurrentMultiplier() - 1) / (MAX_MULTIPLIER - 1)) * 100
+            );
+        }
 
         function getMeterStatus() {
-            if (currentStreak === 0) return "Safe Mode";
-            if (currentStreak < 3) return "Warming Up";
-            if (currentStreak < 7) return "Hot Streak";
-            if (currentStreak < 12) return "Danger Zone";
+            if (currentStreak === 0) {
+                return "Safe Mode";
+            }
+
+            if (currentStreak < 3) {
+                return "Warming Up";
+            }
+
+            if (currentStreak < 7) {
+                return "Hot Streak";
+            }
+
+            if (currentStreak < 12) {
+                return "Danger Zone";
+            }
+
             return "Max Risk";
         }
 
         function updateHud() {
             document.getElementById("streakValue").innerText = currentStreak;
-            document.getElementById("nextRewardValue").innerText = "+" + getCurrentReward() + " SC";
-            document.getElementById("nextLossValue").innerText = "-" + getCurrentLossPenalty() + " SC";
-            document.getElementById("powerFill").style.width = getPowerPercent() + "%";
+            document.getElementById("nextRewardValue").innerText =
+                "+" + getCurrentReward() + " SC";
+            document.getElementById("nextLossValue").innerText =
+                "-" + getCurrentLossPenalty() + " SC";
+            document.getElementById("powerFill").style.width =
+                getPowerPercent() + "%";
             document.getElementById("meterStatus").innerText = getMeterStatus();
+
             updateWalletDisplay();
         }
 
         async function loadCourseGroups() {
             const grid = document.getElementById("courseGroupGrid");
+
             try {
                 const response = await fetch("/api/course-groups");
                 const data = await response.json();
+
                 grid.innerHTML = "";
 
                 data.groups.forEach(group => {
                     const card = document.createElement("div");
                     card.className = "group-card";
                     card.dataset.groupKey = group.key;
+
                     card.innerHTML = `
                         <div class="group-title">${group.label}</div>
                         <div class="group-count">${group.count} courses</div>
                     `;
+
                     card.onclick = () => {
                         card.classList.toggle("selected");
                         updateSelectedCourseGroups();
                     };
+
                     grid.appendChild(card);
                 });
             } catch (error) {
@@ -568,8 +1718,10 @@
         }
 
         function updateSelectedCourseGroups() {
-            selectedCourseGroups = Array.from(document.querySelectorAll(".group-card.selected"))
-                .map(card => card.dataset.groupKey);
+            selectedCourseGroups = Array.from(
+                document.querySelectorAll(".group-card.selected")
+            ).map(card => card.dataset.groupKey);
+
             document.getElementById("startMessage").innerText = "";
         }
 
@@ -577,20 +1729,23 @@
             updateSelectedCourseGroups();
 
             if (selectedCourseGroups.length === 0) {
-                document.getElementById("startMessage").innerText = "Pick at least one course list to start.";
+                document.getElementById("startMessage").innerText =
+                    "Pick at least one course list to start.";
                 return;
             }
 
             document.getElementById("startScreen").style.display = "none";
             document.getElementById("gameScreen").style.display = "flex";
+
             updateHud();
             loadRound();
         }
 
         function changeCourseMix() {
             currentRound = null;
-            nextRoundPromise = null;
-            nextRoundData = null;
+            usedOfferingLabels = [];
+            chainQuestionNum = null;
+            chainAnswerNum = null;
             gameOver = false;
 
             document.getElementById("gameScreen").style.display = "none";
@@ -605,21 +1760,27 @@
             const message = document.getElementById("message");
 
             if (currentStreak === 0) {
-                message.innerText = "Risk already reset. Loading a fresh round...";
+                message.innerText = "Risk already reset. Starting a fresh chain...";
                 loadRound();
                 return;
             }
 
-            if (!confirm("Reset your streak and load a new round?")) return;
+            if (!confirm("Reset your streak and start a new chain?")) {
+                return;
+            }
 
             currentStreak = 0;
             updateHud();
-            message.innerText = "Risk reset. Loading a fresh round...";
+
+            message.innerText = "Risk reset. Starting a fresh chain...";
             loadRound();
         }
 
         async function fetchRound() {
-            const groupsQuery = selectedCourseGroups.map(group => encodeURIComponent(group)).join(",");
+            const groupsQuery = selectedCourseGroups
+                .map(group => encodeURIComponent(group))
+                .join(",");
+
             const response = await fetch("/api/round?groups=" + groupsQuery);
             const data = await response.json();
 
@@ -630,22 +1791,39 @@
             return data;
         }
 
-        function startPreloadingNextRound() {
-            nextRoundData = null;
-            document.getElementById("preloadStatus").innerText = "Preparing next round...";
+        async function fetchChallenger() {
+            if (currentRound === null) {
+                throw new Error("No current round.");
+            }
 
-            nextRoundPromise = fetchRound()
-                .then(data => {
-                    nextRoundData = data;
-                    document.getElementById("preloadStatus").innerText = "Next round ready.";
-                    return data;
-                })
-                .catch(error => {
-                    console.error(error);
-                    document.getElementById("preloadStatus").innerText = "Next round will load when you click Next.";
-                    nextRoundData = null;
-                    nextRoundPromise = null;
-                });
+            const groupsQuery = selectedCourseGroups
+                .map(group => encodeURIComponent(group))
+                .join(",");
+
+            const usedQuery = usedOfferingLabels
+                .map(label => encodeURIComponent(label))
+                .join("||");
+
+            const params = new URLSearchParams({
+                course: currentRound.left.course,
+                name: currentRound.left.name,
+                label: currentRound.left.label,
+                sem: currentRound.left.sem,
+                year: currentRound.left.year,
+                question_num: chainQuestionNum,
+                answer_num: chainAnswerNum,
+                groups: groupsQuery,
+                used: usedQuery
+            });
+
+            const response = await fetch("/api/challenger?" + params.toString());
+            const data = await response.json();
+
+            if (!response.ok || data.error) {
+                throw new Error(data.error || "Could not load challenger.");
+            }
+
+            return data;
         }
 
         async function loadRound() {
@@ -653,38 +1831,34 @@
             resetAnimations();
 
             document.getElementById("loading").style.display = "block";
+            document.getElementById("loading").innerText =
+                "Loading a fresh SECaT chain...";
             document.getElementById("cards").style.display = "none";
             document.getElementById("message").innerText = "";
             document.getElementById("rightPercent").innerText = "?";
             document.getElementById("choiceButtons").style.display = "flex";
             document.getElementById("nextButton").style.display = "none";
+            document.getElementById("preloadStatus").innerText = "";
 
             try {
-                let data;
-
-                if (nextRoundData !== null) {
-                    data = nextRoundData;
-                    nextRoundData = null;
-                    nextRoundPromise = null;
-                } else if (nextRoundPromise !== null) {
-                    document.getElementById("loading").innerText = "Finishing the next round load...";
-                    data = await nextRoundPromise;
-                    nextRoundPromise = null;
-                    nextRoundData = null;
-                } else {
-                    data = await fetchRound();
-                }
+                const data = await fetchRound();
 
                 currentRound = data;
+                chainQuestionNum = data.question_num;
+                chainAnswerNum = data.answer_num;
+
+                usedOfferingLabels = [
+                    data.left.label,
+                    data.right.label
+                ];
+
                 renderRound(data);
 
                 document.getElementById("loading").style.display = "none";
                 document.getElementById("cards").style.display = "grid";
-
-                startPreloadingNextRound();
-
             } catch (error) {
-                document.getElementById("loading").innerText = error.message || "Something went wrong loading the round.";
+                document.getElementById("loading").innerText =
+                    error.message || "Something went wrong loading the round.";
             }
         }
 
@@ -692,23 +1866,35 @@
             const cleanAnswer = data.answer_option.replace(/^\d+\s*/, "");
 
             document.getElementById("questionText").innerHTML = `
-                <div class="question-kicker">Comparing SECaT question</div>
+                <div class="question-kicker">Rolling chain · same SECaT question</div>
                 <div class="question-main">${data.question_name}</div>
                 <div class="question-sub">
-                    Which course offering had a <strong>higher percentage</strong> of students selecting
-                    <strong>${cleanAnswer}</strong>?
+                    Does the new course have a <strong>higher or lower</strong> percentage of
+                    <strong>${cleanAnswer}</strong> than the current course?
                 </div>
             `;
 
-            document.getElementById("leftCode").innerText = data.left.course;
-            document.getElementById("leftName").innerText = data.left.name;
-            document.getElementById("leftOffering").innerText = data.left.label.replace(data.left.course + ": ", "");
-            document.getElementById("leftPercent").innerText = data.left.percent + "%";
-            document.getElementById("leftAnswer").innerText = cleanAnswer;
+            renderLeftCard(data.left, cleanAnswer);
+            renderRightCard(data.right, cleanAnswer, true);
+        }
 
-            document.getElementById("rightCode").innerText = data.right.course;
-            document.getElementById("rightName").innerText = data.right.name;
-            document.getElementById("rightOffering").innerText = data.right.label.replace(data.right.course + ": ", "");
+        function renderLeftCard(cardData, cleanAnswer) {
+            document.getElementById("leftCode").innerText = cardData.course;
+            document.getElementById("leftName").innerText = cardData.name;
+            document.getElementById("leftOffering").innerText =
+                cardData.label.replace(cardData.course + ": ", "");
+            document.getElementById("leftPercent").innerText =
+                Number(cardData.percent).toFixed(2) + "%";
+            document.getElementById("leftAnswer").innerText = cleanAnswer;
+        }
+
+        function renderRightCard(cardData, cleanAnswer, hidden = true) {
+            document.getElementById("rightCode").innerText = cardData.course;
+            document.getElementById("rightName").innerText = cardData.name;
+            document.getElementById("rightOffering").innerText =
+                cardData.label.replace(cardData.course + ": ", "");
+            document.getElementById("rightPercent").innerText =
+                hidden ? "?" : Number(cardData.percent).toFixed(2) + "%";
             document.getElementById("rightAnswer").innerText = cleanAnswer;
         }
 
@@ -733,17 +1919,16 @@
             message.classList.remove("correct-pop");
             message.classList.remove("wrong-shake");
 
-
             message.innerHTML = "Revealing result...";
             rightPercent.classList.add("percent-reveal");
 
             await animateNumberCountUp(
                 rightPercent,
                 currentRound.right.percent,
-                1700
+                2600
             );
 
-            await wait(350);
+            await wait(550);
 
             roundsPlayed += 1;
 
@@ -757,11 +1942,10 @@
                 document.getElementById("rightCard").classList.add("winner-card");
             }
 
-            await wait(450);
+            await wait(650);
 
             if (wasCorrect) {
                 const reward = getCurrentReward();
-                const rewardMultiplier = getCurrentMultiplier();
 
                 score += 1;
                 addCoins(reward);
@@ -770,7 +1954,7 @@
 
                 message.innerHTML =
                     `Correct! +${reward} SC<br>` +
-                    `Streak power paid x${rewardMultiplier.toFixed(2)}.`;
+                    `The old benchmark slides away. The winner takes its place.`;
 
                 message.classList.add("correct-pop");
 
@@ -791,6 +1975,13 @@
 
                 checkWalletAchievements();
                 launchConfetti();
+
+                document.getElementById("score").innerText =
+                    score + " / " + roundsPlayed;
+                updateHud();
+
+                await wait(1300);
+                await advanceChainAfterCorrect();
             } else {
                 const penalty = getCurrentLossPenalty();
                 const lossMultiplier = getLossMultiplier();
@@ -805,12 +1996,93 @@
                 message.classList.add("wrong-shake");
 
                 currentStreak = 0;
+
+                document.getElementById("score").innerText =
+                    score + " / " + roundsPlayed;
+                updateHud();
+
+                nextButton.innerText = "Start New Chain";
+                nextButton.style.display = "inline-block";
             }
+        }
 
-            document.getElementById("score").innerText = score + " / " + roundsPlayed;
-            updateHud();
+        async function advanceChainAfterCorrect() {
+            const message = document.getElementById("message");
+            const cleanAnswer = currentRound.answer_option.replace(/^\d+\s*/, "");
 
-            nextButton.style.display = "inline-block";
+            document.getElementById("preloadStatus").innerText =
+                "Rolling course forward...";
+
+            message.innerHTML =
+                "The old benchmark is sliding out. The winner is sliding into place...";
+
+            document.getElementById("leftCard").classList.add("chain-slide-old-out");
+            document.getElementById("rightCard").classList.add("chain-slide-to-left");
+
+            await wait(1150);
+
+            currentRound.left = currentRound.right;
+
+            resetAnimations();
+
+            renderLeftCard(currentRound.left, cleanAnswer);
+
+            document.getElementById("rightPercent").innerText = "?";
+            document.getElementById("message").innerHTML =
+                "Finding the next challenger...";
+            document.getElementById("preloadStatus").innerText =
+                "Finding next challenger with the same question...";
+
+            try {
+                const challenger = await fetchChallenger();
+
+                const newRight = {
+                    course: challenger.offering.course,
+                    name: challenger.offering.name,
+                    label: challenger.offering.label,
+                    display: challenger.offering.display,
+                    sem: challenger.offering.sem,
+                    year: challenger.offering.year,
+                    count: challenger.data.count,
+                    percent: challenger.data.percent
+                };
+
+                currentRound.right = newRight;
+                currentRound.question_name = challenger.data.question_name;
+                currentRound.answer_option = challenger.data.answer_option;
+
+                usedOfferingLabels.push(newRight.label);
+
+                if (currentRound.right.percent > currentRound.left.percent) {
+                    currentRound.correct_answer = "higher";
+                } else if (currentRound.right.percent < currentRound.left.percent) {
+                    currentRound.correct_answer = "lower";
+                } else {
+                    currentRound.correct_answer = "same";
+                }
+
+                renderRightCard(currentRound.right, cleanAnswer, true);
+
+                document.getElementById("rightCard").classList.add("chain-slide-in");
+                document.getElementById("choiceButtons").style.display = "flex";
+                document.getElementById("nextButton").style.display = "none";
+                document.getElementById("message").innerHTML = "";
+                document.getElementById("preloadStatus").innerText =
+                    "Next challenger ready.";
+
+                gameOver = false;
+
+                await wait(1050);
+                resetAnimations();
+            } catch (error) {
+                message.innerHTML =
+                    "Could not find another challenger. Start a new chain.";
+                document.getElementById("nextButton").innerText =
+                    "Start New Chain";
+                document.getElementById("nextButton").style.display =
+                    "inline-block";
+                document.getElementById("preloadStatus").innerText = "";
+            }
         }
 
         function wait(milliseconds) {
@@ -819,7 +2091,7 @@
             });
         }
 
-        function animateNumberCountUp(element, targetValue, duration = 1400) {
+        function animateNumberCountUp(element, targetValue, duration = 2600) {
             return new Promise(resolve => {
                 const startTime = performance.now();
                 const target = Number(targetValue);
@@ -828,8 +2100,10 @@
                     const elapsed = currentTime - startTime;
                     const progress = Math.min(elapsed / duration, 1);
 
-                    // Ease-out effect: fast at first, slower near the end
-                    const easedProgress = 1 - Math.pow(1 - progress, 3);
+                    const easedProgress =
+                        progress < 0.5
+                            ? 4 * progress * progress * progress
+                            : 1 - Math.pow(-2 * progress + 2, 3) / 2;
 
                     const currentValue = target * easedProgress;
                     element.innerText = currentValue.toFixed(2) + "%";
@@ -846,12 +2120,18 @@
             });
         }
 
-
         function getWinningSide() {
             const left = currentRound.left.percent;
             const right = currentRound.right.percent;
-            if (left > right) return "left";
-            if (right > left) return "right";
+
+            if (left > right) {
+                return "left";
+            }
+
+            if (right > left) {
+                return "right";
+            }
+
             return "same";
         }
 
@@ -861,6 +2141,9 @@
             document.getElementById("rightPercent").classList.remove("percent-reveal");
             document.getElementById("message").classList.remove("correct-pop");
             document.getElementById("message").classList.remove("wrong-shake");
+            document.getElementById("leftCard").classList.remove("chain-slide-old-out");
+            document.getElementById("rightCard").classList.remove("chain-slide-to-left");
+            document.getElementById("rightCard").classList.remove("chain-slide-in");
         }
 
         function launchConfetti() {
@@ -868,13 +2151,18 @@
 
             for (let i = 0; i < 42; i++) {
                 const piece = document.createElement("div");
+
                 piece.className = "confetti-piece";
                 piece.innerText = emojis[Math.floor(Math.random() * emojis.length)];
                 piece.style.left = Math.random() * 100 + "vw";
                 piece.style.animationDelay = Math.random() * 0.25 + "s";
                 piece.style.fontSize = (18 + Math.random() * 20) + "px";
+
                 document.body.appendChild(piece);
-                setTimeout(() => piece.remove(), 1700);
+
+                setTimeout(() => {
+                    piece.remove();
+                }, 1700);
             }
         }
 
