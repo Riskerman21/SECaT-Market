@@ -6,7 +6,7 @@ import time
 
 from flask import Flask, Response, jsonify, render_template, request, stream_with_context
 
-from game import prepare_round, get_course_group_list
+from game import prepare_round, get_course_group_list, prepare_challenger
 from prediction_market import (
     create_random_prediction_market,
     create_prediction_market_for_course_code,
@@ -270,8 +270,54 @@ def api_prediction_market():
         market = create_random_prediction_market()
     if market is None:
         return jsonify({"error": "Could not create a prediction market."}), 500
+    
+    
     return jsonify(market)
 
+@app.route("/api/challenger")
+def api_challenger():
+    course      = request.args.get("course")
+    name        = request.args.get("name", "")
+    label       = request.args.get("label")
+    sem         = request.args.get("sem", type=int)
+    year        = request.args.get("year", type=int)
+    question_num = request.args.get("question_num", type=int)
+    answer_num   = request.args.get("answer_num", type=int)
+    groups_raw   = request.args.get("groups", "")
+    used_raw     = request.args.get("used", "")
+
+    if not course or not label or sem is None or year is None:
+        return jsonify({"error": "Missing required parameters."}), 400
+
+    current_offering = {
+        "course": course,
+        "name":   name,
+        "label":  label,
+        "sem":    sem,
+        "year":   year,
+    }
+
+    course_groups = [g.strip() for g in groups_raw.split(",") if g.strip()]
+
+    # `used` is a ||-delimited, URL-encoded list of already-seen offering labels
+    used_labels = [
+        label.strip()
+        for label in used_raw.split("||")
+        if label.strip()
+    ]
+
+    challenger = prepare_challenger(
+        current_offering=current_offering,
+        question_num=question_num,
+        answer_num=answer_num,
+        course_groups=course_groups,
+        used_labels=used_labels,
+    )
+
+    if challenger is None:
+        return jsonify({"error": "Could not find a challenger. Try again."}), 500
+
+    return jsonify(challenger)
 
 if __name__ == "__main__":
     app.run()
