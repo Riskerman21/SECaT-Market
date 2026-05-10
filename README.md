@@ -84,4 +84,4 @@ This project uses real UQ SECaT-style data for educational and entertainment pur
 
 ## Credits
 
-By Abdallah Azazy and Yousef Hassan.
+By Abdallah Azazy and Youssef Hassan.
