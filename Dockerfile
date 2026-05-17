@@ -8,4 +8,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD gunicorn app:app --worker-class gevent --workers 1 --bind 0.0.0.0:$PORT
+CMD gunicorn app:app --workers 1 --threads 4 --timeout 120 --bind 0.0.0.0:${PORT}
