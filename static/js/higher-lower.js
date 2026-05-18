@@ -18,6 +18,152 @@ let usedOfferingLabels = [];
 let chainQuestionNum = null;
 let chainAnswerNum = null;
 
+let shuffleInterval = null;
+let lookingSoundInterval = null;
+let countUpSoundInterval = null;
+let countUpSoundTimeout = null;
+let countUpSoundStartedAt = null;
+
+const SOUNDS = {
+    looking: new Audio("/static/audio/looking-for-challenger.mp3"),
+    found: new Audio("/static/audio/challenger-found.mp3"),
+    countUp: new Audio("/static/audio/count-up.mp3"),
+    correct: new Audio("/static/audio/correct.mp3"),
+    wrong: new Audio("/static/audio/wrong.mp3")
+};
+
+Object.values(SOUNDS).forEach(sound => {
+    sound.preload = "auto";
+    sound.volume = 0.65;
+});
+
+
+function playSound(name) {
+    const sound = SOUNDS[name];
+
+    if (!sound) {
+        return;
+    }
+
+    sound.currentTime = 0;
+
+    const playPromise = sound.play();
+
+    if (playPromise !== undefined) {
+        playPromise.catch(() => {});
+    }
+}
+
+function getCountUpSoundDelay(elapsed, duration = 2600) {
+    const progress = Math.min(elapsed / duration, 1);
+
+    if (progress < 0.18) {
+        return 330;
+    }
+
+    if (progress < 0.38) {
+        return 230;
+    }
+
+    if (progress < 0.62) {
+        return 155;
+    }
+
+    if (progress < 0.84) {
+        return 105;
+    }
+
+    return 75;
+}
+
+function scheduleNextCountUpSound(duration = 2600) {
+    if (countUpSoundStartedAt === null) {
+        return;
+    }
+
+    const elapsed = performance.now() - countUpSoundStartedAt;
+
+    if (elapsed >= duration) {
+        return;
+    }
+
+    playRapidSound("countUp");
+
+    const nextDelay = getCountUpSoundDelay(elapsed, duration);
+
+    countUpSoundTimeout = setTimeout(() => {
+        scheduleNextCountUpSound(duration);
+    }, nextDelay);
+}
+
+function startCountUpSound(duration = 2600) {
+    if (countUpSoundInterval !== null) {
+        clearInterval(countUpSoundInterval);
+        countUpSoundInterval = null;
+    }
+
+    if (countUpSoundTimeout !== null) {
+        clearTimeout(countUpSoundTimeout);
+        countUpSoundTimeout = null;
+    }
+
+    countUpSoundStartedAt = performance.now();
+    scheduleNextCountUpSound(duration);
+}
+
+function stopCountUpSound() {
+    if (countUpSoundInterval !== null) {
+        clearInterval(countUpSoundInterval);
+        countUpSoundInterval = null;
+    }
+
+    if (countUpSoundTimeout !== null) {
+        clearTimeout(countUpSoundTimeout);
+        countUpSoundTimeout = null;
+    }
+
+    countUpSoundStartedAt = null;
+
+    stopSound("countUp");
+}
+
+function playRapidSound(name) {
+    const sound = SOUNDS[name];
+
+    if (!sound) {
+        return;
+    }
+
+    const soundClone = sound.cloneNode();
+    soundClone.volume = sound.volume;
+
+    const playPromise = soundClone.play();
+
+    if (playPromise !== undefined) {
+        playPromise.catch(() => {});
+    }
+
+    setTimeout(() => {
+        soundClone.pause();
+        soundClone.remove();
+    }, 900);
+}
+
+function stopSound(name) {
+    const sound = SOUNDS[name];
+
+    if (!sound) {
+        return;
+    }
+
+    sound.pause();
+    sound.currentTime = 0;
+}
+
+function stopLoopingSounds() {
+    stopCountUpSound();
+}
+
 function swapCardColours() {
     const leftCard = document.getElementById("leftCard");
     const rightCard = document.getElementById("rightCard");
@@ -145,9 +291,26 @@ function startGame() {
 
     updateHud();
     loadRound();
+
+    Object.values(SOUNDS).forEach(sound => {
+        const originalVolume = sound.volume;
+        sound.volume = 0;
+        sound.play()
+            .then(() => {
+                sound.pause();
+                sound.currentTime = 0;
+                sound.volume = originalVolume;
+            })
+            .catch(() => {
+                sound.volume = originalVolume;
+            });
+    });
 }
 
 function changeCourseMix() {
+    stopShuffleAnimation();
+    stopLoopingSounds();
+
     currentRound = null;
     usedOfferingLabels = [];
     chainQuestionNum = null;
@@ -233,6 +396,9 @@ async function fetchChallenger() {
 }
 
 async function loadRound() {
+    stopShuffleAnimation();
+    stopLoopingSounds();
+
     gameOver = false;
     resetAnimations();
 
@@ -325,14 +491,18 @@ async function makeGuess(guess) {
     message.classList.remove("correct-pop");
     message.classList.remove("wrong-shake");
 
-    message.innerHTML = "Revealing result...";
+    message.innerHTML = "genuis?...";
     rightPercent.classList.add("percent-reveal");
+
+    startCountUpSound(2000);
 
     await animateNumberCountUp(
         rightPercent,
         currentRound.right.percent,
-        2600
+        2000
     );
+
+    stopCountUpSound();
 
     await wait(550);
 
@@ -351,6 +521,8 @@ async function makeGuess(guess) {
     await wait(650);
 
     if (wasCorrect) {
+        playSound("correct");
+
         const reward = getCurrentReward();
 
         score += 1;
@@ -386,6 +558,8 @@ async function makeGuess(guess) {
         await wait(1300);
         await advanceChainAfterCorrect();
     } else {
+        playSound("wrong");
+
         const penalty = getCurrentLossPenalty();
         const lossMultiplier = getLossMultiplier();
         const lostStreak = currentStreak;
@@ -498,34 +672,57 @@ function getShuffleCourseCodes() {
     return [...new Set(courseCodes)];
 }
 
-function startShuffleAnimation(duration = 1900) {
-    return new Promise(resolve => {
-        const overlay = document.getElementById("shuffleOverlay");
-        const courseText = document.getElementById("shuffleCourse");
+function startShuffleAnimation() {
+    const overlay = document.getElementById("shuffleOverlay");
+    const courseText = document.getElementById("shuffleCourse");
 
-        if (overlay === null || courseText === null) {
-            resolve();
-            return;
-        }
+    if (overlay === null || courseText === null) {
+        return;
+    }
 
-        const courseCodes = getShuffleCourseCodes();
+    const courseCodes = getShuffleCourseCodes();
 
-        overlay.classList.add("show");
+    overlay.classList.add("show");
 
-        let index = 0;
-        courseText.innerText = courseCodes[0];
+    let index = 0;
+    courseText.innerText = courseCodes[0];
 
-        const interval = setInterval(() => {
-            courseText.innerText = courseCodes[index % courseCodes.length];
-            index += 1;
-        }, 120);
+    if (shuffleInterval !== null) {
+        clearInterval(shuffleInterval);
+    }
 
-        setTimeout(() => {
-            clearInterval(interval);
-            overlay.classList.remove("show");
-            resolve();
-        }, duration);
-    });
+    if (lookingSoundInterval !== null) {
+        clearInterval(lookingSoundInterval);
+    }
+
+    playRapidSound("looking");
+
+    shuffleInterval = setInterval(() => {
+        courseText.innerText = courseCodes[index % courseCodes.length];
+        index += 1;
+    }, 120);
+
+    lookingSoundInterval = setInterval(() => {
+        playRapidSound("looking");
+    }, 120);
+}
+
+function stopShuffleAnimation() {
+    const overlay = document.getElementById("shuffleOverlay");
+
+    if (shuffleInterval !== null) {
+        clearInterval(shuffleInterval);
+        shuffleInterval = null;
+    }
+
+    if (lookingSoundInterval !== null) {
+        clearInterval(lookingSoundInterval);
+        lookingSoundInterval = null;
+    }
+
+    if (overlay !== null) {
+        overlay.classList.remove("show");
+    }
 }
 
 async function advanceChainAfterCorrect() {
@@ -566,10 +763,13 @@ async function advanceChainAfterCorrect() {
     document.getElementById("preloadStatus").innerText =
         "Finding next challenger with the same question...";
 
-    await startShuffleAnimation(1900);
+    startShuffleAnimation();
 
     try {
         const challenger = await fetchChallenger();
+
+        stopShuffleAnimation();
+        playSound("found");
 
         const newRight = {
             course: challenger.offering.course,
@@ -611,6 +811,9 @@ async function advanceChainAfterCorrect() {
         await wait(1050);
         resetAnimations();
     } catch (error) {
+        stopShuffleAnimation();
+        stopLoopingSounds();
+
         message.innerHTML =
             "Could not find another challenger. Start a new chain.";
         document.getElementById("nextButton").innerText =
@@ -630,10 +833,7 @@ function animateNumberCountUp(element, targetValue, duration = 2600) {
             const elapsed = currentTime - startTime;
             const progress = Math.min(elapsed / duration, 1);
 
-            const easedProgress =
-                progress < 0.5
-                    ? 4 * progress * progress * progress
-                    : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+            const easedProgress = Math.pow(progress, 2.15);
 
             const currentValue = target * easedProgress;
             element.innerText = currentValue.toFixed(2) + "%";

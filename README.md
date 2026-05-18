@@ -9,18 +9,33 @@ The project was built for gamejam2026
 
 ```text
 .
-├── app.py
-├── game.py
 ├── prediction_market.py
-├── bots.py
+├── preload_computer_science_cache.py
+├── Procfile
+├── README.md
 ├── request_secat_data.py
+├── requirements.txt
 ├── secat_cache.py
-├── cache/
-├── static/
-│   └── higher-or-lower-logo.png
-└── templates/
-    ├── main.html
+├── static
+│   ├── audio
+│   │   ├── challenger-found.mp3
+│   │   ├── correct.mp3
+│   │   ├── count-up.mp3
+│   │   ├── looking-for-challenger.mp3
+│   │   └── wrong.mp3
+│   ├── css
+│   │   ├── common.css
+│   │   ├── higher-lower.css
+│   │   ├── main.css
+│   │   └── prediction.css
+│   ├── higher-or-lower-logo.png
+│   └── js
+│       ├── common.js
+│       ├── higher-lower.js
+│       └── prediction.js
+└── templates
     ├── index.html
+    ├── main.html
     └── prediction.html
 ```
 
