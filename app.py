@@ -112,10 +112,10 @@ def _bot_loop():
         _publish(event)
 
 
-threading.Thread(target=_bot_loop, daemon=True).start()
+#threading.Thread(target=_bot_loop, daemon=True).start()
 
 
-# Routes 
+# Routes
 
 @app.route("/")
 def landing_page():
@@ -270,8 +270,8 @@ def api_prediction_market():
         market = create_random_prediction_market()
     if market is None:
         return jsonify({"error": "Could not create a prediction market."}), 500
-    
-    
+
+
     return jsonify(market)
 
 @app.route("/api/challenger")
