@@ -1208,7 +1208,8 @@ function resetWalletForTesting() {
     setWalletBalance(STARTING_BALANCE);
 }
 
-loadCourses();
-loadSavedPositions();
-renderPositions();
-initialiseCommonUi();
+onAuthReady(function () {
+    loadCourses();
+    loadSavedPositions();
+    renderPositions();
+});

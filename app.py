@@ -1,11 +1,15 @@
 import json
+import os
 import queue
 import random
 import threading
 import time
+from datetime import timedelta
 
-from flask import Flask, Response, jsonify, render_template, request, stream_with_context
+from flask import Flask, Response, jsonify, render_template, request, session, stream_with_context
+from werkzeug.security import check_password_hash, generate_password_hash
 
+import secat_cache
 from game import prepare_round, get_course_group_list, prepare_challenger
 from prediction_market import (
     create_random_prediction_market,
@@ -15,6 +19,16 @@ from prediction_market import (
 from bots import create_bots, run_bot_round, summarise_trades
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-in-production")
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    PERMANENT_SESSION_LIFETIME=timedelta(days=30),
+)
+
+
+def _current_user_id():
+    return session.get("user_id")
 
 # SSE trade feed
 _trade_log   = []
@@ -116,6 +130,161 @@ def _bot_loop():
 
 
 # Routes
+
+# ---------------------------------------------------------------------------
+# Auth helpers
+# ---------------------------------------------------------------------------
+
+def _db_required():
+    if not secat_cache.db_available():
+        return jsonify({"error": "Accounts require a database connection. Continue as guest."}), 503
+    return None
+
+
+def _user_payload(user_id: int, username: str) -> dict:
+    state = secat_cache.get_user_state(user_id)
+    achievements = secat_cache.get_user_achievements(user_id)
+    return {"id": user_id, "username": username, "achievements": achievements, **state}
+
+
+# ---------------------------------------------------------------------------
+# Auth routes
+# ---------------------------------------------------------------------------
+
+@app.route("/api/auth/register", methods=["POST"])
+def api_register():
+    err = _db_required()
+    if err:
+        return err
+
+    data = request.get_json(silent=True) or {}
+    username = (data.get("username") or "").strip()
+    password = data.get("password") or ""
+
+    if len(username) < 3:
+        return jsonify({"error": "Username must be at least 3 characters."}), 400
+    if len(username) > 30:
+        return jsonify({"error": "Username must be 30 characters or fewer."}), 400
+    if len(password) < 6:
+        return jsonify({"error": "Password must be at least 6 characters."}), 400
+
+    user_id = secat_cache.create_user(username, generate_password_hash(password))
+    if user_id is None:
+        return jsonify({"error": "Username already taken."}), 409
+
+    session.permanent = True
+    session["user_id"] = user_id
+    return jsonify(_user_payload(user_id, username)), 201
+
+
+@app.route("/api/auth/login", methods=["POST"])
+def api_login():
+    err = _db_required()
+    if err:
+        return err
+
+    data = request.get_json(silent=True) or {}
+    username = (data.get("username") or "").strip()
+    password = data.get("password") or ""
+
+    user = secat_cache.get_user_by_username(username)
+    if user is None or not check_password_hash(user["password_hash"], password):
+        return jsonify({"error": "Invalid username or password."}), 401
+
+    session.permanent = True
+    session["user_id"] = user["id"]
+    return jsonify(_user_payload(user["id"], user["username"]))
+
+
+@app.route("/api/auth/logout", methods=["POST"])
+def api_logout():
+    session.clear()
+    return jsonify({"ok": True})
+
+
+@app.route("/api/auth/me")
+def api_me():
+    uid = _current_user_id()
+    if uid is None:
+        return jsonify({"user": None})
+
+    user = secat_cache.get_user_by_id(uid)
+    if user is None:
+        session.clear()
+        return jsonify({"user": None})
+
+    return jsonify({"user": _user_payload(uid, user["username"])})
+
+
+# ---------------------------------------------------------------------------
+# User-state routes (all require a valid session)
+# ---------------------------------------------------------------------------
+
+@app.route("/api/user/balance", methods=["POST"])
+def api_user_balance():
+    uid = _current_user_id()
+    if uid is None:
+        return jsonify({"error": "Not logged in."}), 401
+
+    data = request.get_json(silent=True) or {}
+    delta = float(data.get("delta", 0))
+    new_balance = secat_cache.add_to_balance(uid, delta)
+    if new_balance is None:
+        return jsonify({"error": "Could not update balance."}), 500
+    return jsonify({"balance": new_balance})
+
+
+@app.route("/api/user/achievement", methods=["POST"])
+def api_user_achievement():
+    uid = _current_user_id()
+    if uid is None:
+        return jsonify({"error": "Not logged in."}), 401
+
+    data = request.get_json(silent=True) or {}
+    achievement_id = data.get("id", "")
+    newly_unlocked = secat_cache.unlock_user_achievement(uid, achievement_id)
+    return jsonify({"newly_unlocked": newly_unlocked})
+
+
+@app.route("/api/user/stat", methods=["PATCH"])
+def api_user_stat():
+    uid = _current_user_id()
+    if uid is None:
+        return jsonify({"error": "Not logged in."}), 401
+
+    data = request.get_json(silent=True) or {}
+    field = data.get("field", "")
+    value = data.get("value", 0)
+
+    allowed = {"best_streak", "total_coins_earned", "biggest_market_profit", "total_bets_placed"}
+    if field not in allowed:
+        return jsonify({"error": "Invalid field."}), 400
+
+    secat_cache.update_user_stat(uid, field, float(value))
+    return jsonify({"ok": True})
+
+
+@app.route("/api/user/achievements", methods=["DELETE"])
+def api_reset_achievements():
+    uid = _current_user_id()
+    if uid is None:
+        return jsonify({"error": "Not logged in."}), 401
+    secat_cache.reset_user_achievements(uid)
+    return jsonify({"ok": True})
+
+
+@app.route("/api/user/stats", methods=["DELETE"])
+def api_reset_stats():
+    uid = _current_user_id()
+    if uid is None:
+        return jsonify({"error": "Not logged in."}), 401
+    secat_cache.reset_user_stats(uid)
+    return jsonify({"ok": True})
+
+
+# ---------------------------------------------------------------------------
+# Pages
+# ---------------------------------------------------------------------------
 
 @app.route("/")
 def landing_page():

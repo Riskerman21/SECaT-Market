@@ -56,6 +56,32 @@ def _get_pool():
 def _ensure_schema(conn):
     with conn.cursor() as cur:
         cur.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id            SERIAL PRIMARY KEY,
+                username      TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                created_at    TIMESTAMPTZ DEFAULT NOW()
+            )
+        """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS user_state (
+                user_id               INT  PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+                balance               REAL NOT NULL DEFAULT 500,
+                best_streak           INT  NOT NULL DEFAULT 0,
+                total_coins_earned    REAL NOT NULL DEFAULT 0,
+                biggest_market_profit REAL NOT NULL DEFAULT 0,
+                total_bets_placed     INT  NOT NULL DEFAULT 0
+            )
+        """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS user_achievements (
+                user_id        INT  NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                achievement_id TEXT NOT NULL,
+                unlocked_at    TIMESTAMPTZ DEFAULT NOW(),
+                PRIMARY KEY (user_id, achievement_id)
+            )
+        """)
+        cur.execute("""
             CREATE TABLE IF NOT EXISTS course_offerings (
                 course_code TEXT    NOT NULL,
                 course_name TEXT    NOT NULL DEFAULT '',
@@ -639,3 +665,260 @@ def set_cached_market(
 ):
     if not _db_set_market(course_code, question_num, answer_num, max_history, market, before_year, before_sem):
         _file_set_market(course_code, question_num, answer_num, max_history, market, before_year, before_sem)
+
+
+# ---------------------------------------------------------------------------
+# User accounts
+# ---------------------------------------------------------------------------
+
+def db_available() -> bool:
+    return _get_pool() is not None
+
+
+def create_user(username: str, password_hash: str):
+    db, conn = _acquire()
+    if conn is None:
+        return None
+    commit = False
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "INSERT INTO users (username, password_hash) VALUES (%s, %s) RETURNING id",
+                (username, password_hash),
+            )
+            user_id = cur.fetchone()[0]
+            cur.execute("INSERT INTO user_state (user_id) VALUES (%s)", (user_id,))
+        commit = True
+        return user_id
+    except Exception as e:
+        print(f"[DB] create_user error: {e}")
+        return None
+    finally:
+        _release(db, conn, commit=commit)
+
+
+def get_user_by_username(username: str):
+    db, conn = _acquire()
+    if conn is None:
+        return None
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT id, username, password_hash FROM users WHERE username = %s",
+                (username,),
+            )
+            row = cur.fetchone()
+        if row is None:
+            return None
+        return {"id": row[0], "username": row[1], "password_hash": row[2]}
+    except Exception as e:
+        print(f"[DB] get_user_by_username error: {e}")
+        return None
+    finally:
+        _release(db, conn)
+
+
+def get_user_by_id(user_id: int):
+    db, conn = _acquire()
+    if conn is None:
+        return None
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT id, username FROM users WHERE id = %s",
+                (user_id,),
+            )
+            row = cur.fetchone()
+        if row is None:
+            return None
+        return {"id": row[0], "username": row[1]}
+    except Exception as e:
+        print(f"[DB] get_user_by_id error: {e}")
+        return None
+    finally:
+        _release(db, conn)
+
+
+def get_user_state(user_id: int) -> dict:
+    db, conn = _acquire()
+    if conn is None:
+        return _default_state()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT balance, best_streak, total_coins_earned,
+                       biggest_market_profit, total_bets_placed
+                FROM user_state WHERE user_id = %s
+                """,
+                (user_id,),
+            )
+            row = cur.fetchone()
+        if row is None:
+            return _default_state()
+        return {
+            "balance":               row[0],
+            "best_streak":           row[1],
+            "total_coins_earned":    row[2],
+            "biggest_market_profit": row[3],
+            "total_bets_placed":     row[4],
+        }
+    except Exception as e:
+        print(f"[DB] get_user_state error: {e}")
+        return _default_state()
+    finally:
+        _release(db, conn)
+
+
+def _default_state() -> dict:
+    return {
+        "balance": 500,
+        "best_streak": 0,
+        "total_coins_earned": 0,
+        "biggest_market_profit": 0,
+        "total_bets_placed": 0,
+    }
+
+
+def add_to_balance(user_id: int, delta: float):
+    db, conn = _acquire()
+    if conn is None:
+        return None
+    commit = False
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                UPDATE user_state
+                SET balance = GREATEST(0, balance + %s)
+                WHERE user_id = %s
+                RETURNING balance
+                """,
+                (delta, user_id),
+            )
+            row = cur.fetchone()
+        commit = True
+        return row[0] if row else None
+    except Exception as e:
+        print(f"[DB] add_to_balance error: {e}")
+        return None
+    finally:
+        _release(db, conn, commit=commit)
+
+
+def get_user_achievements(user_id: int) -> list:
+    db, conn = _acquire()
+    if conn is None:
+        return []
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT achievement_id FROM user_achievements WHERE user_id = %s",
+                (user_id,),
+            )
+            rows = cur.fetchall()
+        return [row[0] for row in rows]
+    except Exception as e:
+        print(f"[DB] get_user_achievements error: {e}")
+        return []
+    finally:
+        _release(db, conn)
+
+
+def unlock_user_achievement(user_id: int, achievement_id: str) -> bool:
+    db, conn = _acquire()
+    if conn is None:
+        return False
+    commit = False
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO user_achievements (user_id, achievement_id)
+                VALUES (%s, %s)
+                ON CONFLICT DO NOTHING
+                """,
+                (user_id, achievement_id),
+            )
+            newly_inserted = cur.rowcount > 0
+        commit = True
+        return newly_inserted
+    except Exception as e:
+        print(f"[DB] unlock_user_achievement error: {e}")
+        return False
+    finally:
+        _release(db, conn, commit=commit)
+
+
+_STAT_SQL = {
+    "best_streak": (
+        "UPDATE user_state SET best_streak = GREATEST(best_streak, %s) WHERE user_id = %s"
+    ),
+    "biggest_market_profit": (
+        "UPDATE user_state SET biggest_market_profit = GREATEST(biggest_market_profit, %s) WHERE user_id = %s"
+    ),
+    "total_coins_earned": (
+        "UPDATE user_state SET total_coins_earned = total_coins_earned + %s WHERE user_id = %s"
+    ),
+    "total_bets_placed": (
+        "UPDATE user_state SET total_bets_placed = total_bets_placed + %s WHERE user_id = %s"
+    ),
+}
+
+
+def update_user_stat(user_id: int, field: str, value: float):
+    sql = _STAT_SQL.get(field)
+    if sql is None:
+        return
+    db, conn = _acquire()
+    if conn is None:
+        return
+    commit = False
+    try:
+        with conn.cursor() as cur:
+            cur.execute(sql, (value, user_id))
+        commit = True
+    except Exception as e:
+        print(f"[DB] update_user_stat error ({field}): {e}")
+    finally:
+        _release(db, conn, commit=commit)
+
+
+def reset_user_achievements(user_id: int):
+    db, conn = _acquire()
+    if conn is None:
+        return
+    commit = False
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "DELETE FROM user_achievements WHERE user_id = %s", (user_id,)
+            )
+        commit = True
+    except Exception as e:
+        print(f"[DB] reset_user_achievements error: {e}")
+    finally:
+        _release(db, conn, commit=commit)
+
+
+def reset_user_stats(user_id: int):
+    db, conn = _acquire()
+    if conn is None:
+        return
+    commit = False
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                UPDATE user_state
+                SET best_streak=0, total_coins_earned=0,
+                    biggest_market_profit=0, total_bets_placed=0
+                WHERE user_id = %s
+                """,
+                (user_id,),
+            )
+        commit = True
+    except Exception as e:
+        print(f"[DB] reset_user_stats error: {e}")
+    finally:
+        _release(db, conn, commit=commit)

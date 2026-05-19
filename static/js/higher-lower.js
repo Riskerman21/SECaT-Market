@@ -917,4 +917,3 @@ function closeAchievementsMenu() {
 
 updateHud();
 loadCourseGroups();
-initialiseCommonUi();
