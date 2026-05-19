@@ -35,33 +35,10 @@ _trade_log   = []
 _subscribers = []
 _feed_lock   = threading.Lock()
 
-# Per-market price state
-_market_prices      = {}
-_market_prices_lock = threading.Lock()
-
 # One shared bot roster — bots persist balance across ticks
 _bots = create_bots()
 _bots_lock = threading.Lock()
 
-
-def _get_price(market_key: str, base: float) -> float:
-    with _market_prices_lock:
-        if market_key not in _market_prices:
-            _market_prices[market_key] = float(base)
-        return _market_prices[market_key]
-
-
-def _set_price(market_key: str, price: float):
-    with _market_prices_lock:
-        _market_prices[market_key] = max(5.0, min(95.0, price))
-
-
-def _apply_price_impact(current: float, trades: list[dict]) -> float:
-    """Move price based on net buy/sell pressure from a list of bot trades."""
-    for trade in trades:
-        impact = trade["size"] * 0.25 * (1 if trade["direction"] == "HIGHER" else -1)
-        current += impact + random.gauss(0, 0.3)
-    return max(5.0, min(95.0, current))
 
 
 def _publish(event_data: dict):
@@ -85,22 +62,16 @@ def _bot_loop():
         if market is None:
             continue
 
-        base_price  = float(market["initial_prediction"])
-        market_key  = f"{market['course']}_q{market['question_num']}_a{market['answer_num']}"
-        current     = _get_price(market_key, base_price)
+        base_price = float(market["initial_prediction"])
+        current    = base_price
 
         with _bots_lock:
             trades = run_bot_round(_bots, market, current)
 
-        new_price = _apply_price_impact(current, trades)
-        _set_price(market_key, new_price)
-
-        # summarise_trades takes a list of trade dicts from run_bot_round
         summary = summarise_trades(trades) if trades else {
             "implied_price": 50.0, "sentiment": "neutral"
         }
 
-        # Attach sentiment label if not already present (bots.py doesn't add it)
         implied = summary["implied_price"]
         if   implied >= 70: sentiment = "strongly bullish"
         elif implied >= 55: sentiment = "bullish"
@@ -332,20 +303,30 @@ def trade_feed():
     )
 
 
-@app.route("/api/bot-activity")
-def api_bot_activity():
-    market_key = request.args.get("market_key", "")
+def _stub_market_from_db(market_row: dict) -> dict:
+    """Build minimal market dict bots need from a DB market row."""
+    return {
+        "course":             market_row["course_code"],
+        "question_num":       market_row["question_num"],
+        "answer_num":         market_row["answer_num"],
+        "initial_prediction": market_row["initial_prediction"],
+        "history":            [{"percent": market_row["initial_prediction"]}],
+        "confidence":         market_row["confidence"],
+    }
+
+
+# ---------------------------------------------------------------------------
+# Market routes (Phase 2a)
+# ---------------------------------------------------------------------------
+
+@app.route("/api/bot-activity-legacy")
+def api_bot_activity_legacy():
+    """Stateless bot tick for guests / no-DB mode."""
     base_price = float(request.args.get("base_price", 50))
     course     = request.args.get("course", "UNKNOWN")
     q_num      = request.args.get("question_num", "1")
-    a_num      = request.args.get("answer_num",   "1")
+    a_num      = request.args.get("answer_num", "1")
 
-    if not market_key:
-        market_key = f"{course}_q{q_num}_a{a_num}"
-
-    current = _get_price(market_key, base_price)
-
-    # Build a minimal market dict so bots can form beliefs without a DB hit
     stub_market = {
         "course":             course,
         "question_num":       q_num,
@@ -356,52 +337,247 @@ def api_bot_activity():
     }
 
     with _bots_lock:
-        trades = run_bot_round(_bots, stub_market, current)
+        trades = run_bot_round(_bots, stub_market, base_price)
 
-    new_price = _apply_price_impact(current, trades)
-    _set_price(market_key, new_price)
+    higher = sum(t["size"] for t in trades if t["direction"] == "HIGHER")
+    lower  = sum(t["size"] for t in trades if t["direction"] == "LOWER")
+    total  = higher + lower
+    new_price = max(5.0, min(95.0, higher / total * 100)) if total else base_price
 
-    # Format for the frontend (which expects bot, personality, direction, size)
+    return jsonify({"bot_trades": trades, "current_price": round(new_price, 2)})
+
+
+@app.route("/api/markets", methods=["POST"])
+def api_create_market():
+    data = request.get_json(silent=True) or {}
+
+    course_code   = data.get("course_code", "")
+    question_num  = int(data.get("question_num", 1))
+    answer_num    = int(data.get("answer_num", 1))
+    question_name = data.get("question_name", "")
+    answer        = data.get("answer", "")
+    initial_pred  = float(data.get("initial_prediction", 50))
+    confidence    = float(data.get("confidence", 50))
+    upcoming_sem  = int(data.get("upcoming_sem", 1))
+    upcoming_year = int(data.get("upcoming_year", 2025))
+
+    if not course_code:
+        return jsonify({"error": "course_code required"}), 400
+
+    if not secat_cache.db_available():
+        return jsonify({"error": "Database unavailable — markets require a DB connection."}), 503
+
+    market = secat_cache.get_or_create_market(
+        course_code, question_num, answer_num, question_name, answer,
+        initial_pred, confidence, upcoming_sem, upcoming_year,
+    )
+    if market is None:
+        return jsonify({"error": "Could not create market."}), 500
+
+    return jsonify(market)
+
+
+@app.route("/api/markets/<int:market_id>")
+def api_get_market(market_id: int):
+    if not secat_cache.db_available():
+        return jsonify({"error": "Database unavailable."}), 503
+    market = secat_cache.get_market(market_id)
+    if market is None:
+        return jsonify({"error": "Market not found."}), 404
+    return jsonify(market)
+
+
+@app.route("/api/markets/open")
+def api_open_markets():
+    if not secat_cache.db_available():
+        return jsonify({"markets": []})
+    return jsonify({"markets": secat_cache.get_open_markets()})
+
+
+@app.route("/api/markets/<int:market_id>/bot-tick", methods=["POST"])
+def api_bot_tick(market_id: int):
+    if not secat_cache.db_available():
+        return jsonify({"error": "Database unavailable."}), 503
+
+    market_row = secat_cache.get_market(market_id)
+    if market_row is None:
+        return jsonify({"error": "Market not found."}), 404
+    if market_row["status"] != "open":
+        return jsonify({"error": "Market is closed."}), 400
+
+    current = market_row["current_price"]
+    stub    = _stub_market_from_db(market_row)
+
+    with _bots_lock:
+        trades = run_bot_round(_bots, stub, current)
+
+    for trade in trades:
+        price_cents = current
+        stake       = float(trade["size"])
+        shares      = stake / (price_cents / 100) if price_cents > 0 else stake
+        secat_cache.add_position(
+            market_id, None, trade["bot"],
+            trade["direction"].lower(), stake, price_cents, shares,
+        )
+
+    new_price = secat_cache.recompute_market_price(market_id)
+    if new_price is None:
+        new_price = current
+
     return jsonify({
         "bot_trades":    trades,
         "current_price": round(new_price, 2),
     })
 
 
-@app.route("/api/trade", methods=["POST"])
-def api_trade():
-    data       = request.get_json(silent=True) or {}
-    market_key = data.get("market_key", "default")
-    base_price = float(data.get("base_price", 50))
-    direction  = data.get("direction", "HIGHER").upper()
-    size       = int(data.get("size", 50))
+@app.route("/api/markets/<int:market_id>/trade", methods=["POST"])
+def api_market_trade(market_id: int):
+    uid = _current_user_id()
+    if uid is None:
+        return jsonify({"error": "Login required to place a trade."}), 401
 
-    if not market_key:
-        market_key = "default"
+    if not secat_cache.db_available():
+        return jsonify({"error": "Database unavailable."}), 503
 
-    current = _get_price(market_key, base_price)
-    # Player's own trade moves price
-    impact  = size * 0.3 * (1 if direction == "HIGHER" else -1)
-    current = max(5.0, min(95.0, current + impact))
-    _set_price(market_key, current)
+    market_row = secat_cache.get_market(market_id)
+    if market_row is None:
+        return jsonify({"error": "Market not found."}), 404
+    if market_row["status"] != "open":
+        return jsonify({"error": "Market is closed."}), 400
 
-    # Reactive bot response
-    stub_market = {
-        "course":             data.get("course", "?"),
-        "question_num":       data.get("question_num", 1),
-        "answer_num":         data.get("answer_num", 1),
-        "initial_prediction": base_price,
-        "history":            [{"percent": base_price}],
-        "confidence":         50,
-    }
+    data      = request.get_json(silent=True) or {}
+    direction = (data.get("direction") or "higher").lower()
+    stake     = float(data.get("stake", 0))
 
+    if direction not in ("higher", "lower"):
+        return jsonify({"error": "direction must be 'higher' or 'lower'"}), 400
+    if stake <= 0:
+        return jsonify({"error": "stake must be positive"}), 400
+
+    current     = market_row["current_price"]
+    price_cents = current if direction == "higher" else (100 - current)
+    price_frac  = price_cents / 100
+    shares      = stake / price_frac if price_frac > 0 else stake
+
+    state = secat_cache.get_user_state(uid)
+    if state["balance"] < stake:
+        return jsonify({"error": "Insufficient balance."}), 400
+
+    new_balance = secat_cache.add_to_balance(uid, -stake)
+    if new_balance is None:
+        return jsonify({"error": "Could not update balance."}), 500
+
+    secat_cache.add_position(
+        market_id, uid, None, direction, stake, price_cents, shares,
+    )
+
+    stub = _stub_market_from_db(market_row)
     with _bots_lock:
-        bot_trades = run_bot_round(_bots, stub_market, current)
+        bot_trades = run_bot_round(_bots, stub, current)
 
-    new_price = _apply_price_impact(current, bot_trades)
-    _set_price(market_key, new_price)
+    for trade in bot_trades:
+        bp     = current
+        bstake = float(trade["size"])
+        bshares = bstake / (bp / 100) if bp > 0 else bstake
+        secat_cache.add_position(
+            market_id, None, trade["bot"],
+            trade["direction"].lower(), bstake, bp, bshares,
+        )
 
-    return jsonify({"new_price": round(new_price, 2), "bot_trades": bot_trades})
+    new_price = secat_cache.recompute_market_price(market_id)
+    if new_price is None:
+        new_price = current
+
+    return jsonify({
+        "new_price":   round(new_price, 2),
+        "bot_trades":  bot_trades,
+        "new_balance": new_balance,
+        "position": {
+            "side":        direction,
+            "stake":       stake,
+            "price_cents": price_cents,
+            "shares":      shares,
+        },
+    })
+
+
+@app.route("/api/user/positions")
+def api_user_positions():
+    uid = _current_user_id()
+    if uid is None:
+        return jsonify({"error": "Not logged in."}), 401
+    if not secat_cache.db_available():
+        return jsonify({"positions": []})
+    positions = secat_cache.get_positions_for_user(uid)
+    return jsonify({"positions": positions})
+
+
+@app.route("/api/markets/<int:market_id>/settle", methods=["POST"])
+def api_settle_market(market_id: int):
+    if not secat_cache.db_available():
+        return jsonify({"error": "Database unavailable."}), 503
+
+    market_row = secat_cache.get_market(market_id)
+    if market_row is None:
+        return jsonify({"error": "Market not found."}), 404
+    if market_row["status"] == "resolved":
+        return jsonify({"settled": True, "already_resolved": True, **market_row})
+
+    from request_secat_data import getCourseData
+    from game import extract_json_data
+
+    course_code  = market_row["course_code"]
+    question_num = market_row["question_num"]
+    answer_num   = market_row["answer_num"]
+    sem          = market_row["upcoming_sem"]
+    year         = market_row["upcoming_year"]
+
+    cached = secat_cache.get_cached_secat_data(course_code, sem, year)
+    if cached is not None:
+        course_data = cached
+    else:
+        resp = getCourseData(course_code, sem, year)
+        if resp.get("error"):
+            return jsonify({"settled": False, "reason": "Data not published yet."}), 202
+        try:
+            course_data = extract_json_data(resp["data"])
+        except (ValueError, KeyError):
+            return jsonify({"settled": False, "reason": "Could not parse SECaT data."}), 202
+        secat_cache.set_cached_secat_data(course_code, sem, year, course_data)
+
+    import re
+    target_percent = None
+    for item in course_data:
+        qname = item.get("QUESTION_NAME", "")
+        m = re.match(r"Q(\d+):", qname)
+        if not m:
+            continue
+        if int(m.group(1)) != question_num:
+            continue
+        if item.get("VALUE") == answer_num:
+            target_percent = float(item["PERCENT_ANSWER"])
+            break
+
+    if target_percent is None:
+        return jsonify({"settled": False, "reason": "Question/answer not found in published data."}), 202
+
+    initial = market_row["initial_prediction"]
+    if target_percent > initial:
+        winning_side = "higher"
+    elif target_percent < initial:
+        winning_side = "lower"
+    else:
+        winning_side = "push"
+
+    secat_cache.resolve_market(market_id, target_percent, winning_side)
+    secat_cache.settle_positions(market_id, winning_side, target_percent)
+
+    return jsonify({
+        "settled":        True,
+        "result_percent": target_percent,
+        "winning_side":   winning_side,
+        "market_id":      market_id,
+    })
 
 
 @app.route("/api/round")

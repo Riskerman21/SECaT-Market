@@ -132,6 +132,44 @@ def _ensure_schema(conn):
             )
         """)
         cur.execute("""
+            CREATE TABLE IF NOT EXISTS markets (
+                id                 SERIAL PRIMARY KEY,
+                course_code        TEXT    NOT NULL,
+                question_num       INT     NOT NULL,
+                answer_num         INT     NOT NULL,
+                question_name      TEXT    NOT NULL DEFAULT '',
+                answer             TEXT    NOT NULL DEFAULT '',
+                initial_prediction REAL    NOT NULL,
+                confidence         REAL    NOT NULL,
+                upcoming_sem       INT     NOT NULL,
+                upcoming_year      INT     NOT NULL,
+                current_price      REAL    NOT NULL,
+                status             TEXT    NOT NULL DEFAULT 'open',
+                resolution_result  REAL,
+                resolution_side    TEXT,
+                created_at         TIMESTAMPTZ DEFAULT NOW(),
+                resolved_at        TIMESTAMPTZ,
+                UNIQUE (course_code, question_num, answer_num, upcoming_sem, upcoming_year)
+            )
+        """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS market_positions (
+                id          SERIAL PRIMARY KEY,
+                market_id   INT     NOT NULL REFERENCES markets(id),
+                user_id     INT     REFERENCES users(id),
+                bot_name    TEXT,
+                side        TEXT    NOT NULL,
+                stake       REAL    NOT NULL,
+                price_cents REAL    NOT NULL,
+                shares      REAL    NOT NULL,
+                status      TEXT    NOT NULL DEFAULT 'open',
+                payout      REAL,
+                profit      REAL,
+                created_at  TIMESTAMPTZ DEFAULT NOW(),
+                settled_at  TIMESTAMPTZ
+            )
+        """)
+        cur.execute("""
             CREATE TABLE IF NOT EXISTS prediction_market_history (
                 course_code      TEXT    NOT NULL,
                 question_num     INTEGER NOT NULL,
@@ -920,5 +958,442 @@ def reset_user_stats(user_id: int):
         commit = True
     except Exception as e:
         print(f"[DB] reset_user_stats error: {e}")
+    finally:
+        _release(db, conn, commit=commit)
+
+
+# ---------------------------------------------------------------------------
+# Markets
+# ---------------------------------------------------------------------------
+
+def _market_row_to_dict(row) -> dict:
+    (id_, course_code_, question_num, answer_num, question_name, answer,
+     initial_prediction, confidence, upcoming_sem, upcoming_year,
+     current_price, status, resolution_result, resolution_side,
+     created_at, resolved_at) = row
+    return {
+        "id": id_,
+        "course_code": course_code_,
+        "question_num": question_num,
+        "answer_num": answer_num,
+        "question_name": question_name,
+        "answer": answer,
+        "initial_prediction": initial_prediction,
+        "confidence": confidence,
+        "upcoming_sem": upcoming_sem,
+        "upcoming_year": upcoming_year,
+        "current_price": current_price,
+        "status": status,
+        "resolution_result": resolution_result,
+        "resolution_side": resolution_side,
+        "created_at": created_at.isoformat() if created_at else None,
+        "resolved_at": resolved_at.isoformat() if resolved_at else None,
+    }
+
+
+_MARKET_COLS = (
+    "id, course_code, question_num, answer_num, question_name, answer, "
+    "initial_prediction, confidence, upcoming_sem, upcoming_year, "
+    "current_price, status, resolution_result, resolution_side, "
+    "created_at, resolved_at"
+)
+
+
+def create_market(
+    course_code_: str,
+    question_num: int,
+    answer_num: int,
+    question_name: str,
+    answer: str,
+    initial_prediction: float,
+    confidence: float,
+    upcoming_sem: int,
+    upcoming_year: int,
+) -> "int | None":
+    db, conn = _acquire()
+    if conn is None:
+        return None
+    commit = False
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"""
+                INSERT INTO markets
+                    (course_code, question_num, answer_num, question_name, answer,
+                     initial_prediction, confidence, upcoming_sem, upcoming_year, current_price)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (course_code, question_num, answer_num, upcoming_sem, upcoming_year)
+                DO UPDATE SET
+                    question_name      = EXCLUDED.question_name,
+                    answer             = EXCLUDED.answer,
+                    initial_prediction = EXCLUDED.initial_prediction,
+                    confidence         = EXCLUDED.confidence
+                RETURNING id
+                """,
+                (
+                    course_code_, question_num, answer_num, question_name, answer,
+                    initial_prediction, confidence, upcoming_sem, upcoming_year,
+                    initial_prediction,
+                ),
+            )
+            row = cur.fetchone()
+        commit = True
+        return row[0] if row else None
+    except Exception as e:
+        print(f"[DB] create_market error: {e}")
+        return None
+    finally:
+        _release(db, conn, commit=commit)
+
+
+def get_market(market_id: int) -> "dict | None":
+    db, conn = _acquire()
+    if conn is None:
+        return None
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"SELECT {_MARKET_COLS} FROM markets WHERE id = %s",
+                (market_id,),
+            )
+            row = cur.fetchone()
+        return _market_row_to_dict(row) if row else None
+    except Exception as e:
+        print(f"[DB] get_market error: {e}")
+        return None
+    finally:
+        _release(db, conn)
+
+
+def get_or_create_market(
+    course_code_: str,
+    question_num: int,
+    answer_num: int,
+    question_name: str,
+    answer: str,
+    initial_prediction: float,
+    confidence: float,
+    upcoming_sem: int,
+    upcoming_year: int,
+) -> "dict | None":
+    market_id = create_market(
+        course_code_, question_num, answer_num, question_name, answer,
+        initial_prediction, confidence, upcoming_sem, upcoming_year,
+    )
+    if market_id is None:
+        return None
+    return get_market(market_id)
+
+
+def update_market_price(market_id: int, new_price: float):
+    clamped = max(5.0, min(95.0, new_price))
+    db, conn = _acquire()
+    if conn is None:
+        return
+    commit = False
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE markets SET current_price = %s WHERE id = %s",
+                (clamped, market_id),
+            )
+        commit = True
+    except Exception as e:
+        print(f"[DB] update_market_price error: {e}")
+    finally:
+        _release(db, conn, commit=commit)
+
+
+def resolve_market(market_id: int, result_percent: float, winning_side: str):
+    db, conn = _acquire()
+    if conn is None:
+        return
+    commit = False
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                UPDATE markets
+                SET status = 'resolved',
+                    resolution_result = %s,
+                    resolution_side   = %s,
+                    resolved_at       = NOW()
+                WHERE id = %s
+                """,
+                (result_percent, winning_side, market_id),
+            )
+        commit = True
+    except Exception as e:
+        print(f"[DB] resolve_market error: {e}")
+    finally:
+        _release(db, conn, commit=commit)
+
+
+def get_open_markets(limit: int = 20) -> list:
+    db, conn = _acquire()
+    if conn is None:
+        return []
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"""
+                SELECT {_MARKET_COLS} FROM markets
+                WHERE status = 'open'
+                ORDER BY created_at DESC
+                LIMIT %s
+                """,
+                (limit,),
+            )
+            rows = cur.fetchall()
+        return [_market_row_to_dict(r) for r in rows]
+    except Exception as e:
+        print(f"[DB] get_open_markets error: {e}")
+        return []
+    finally:
+        _release(db, conn)
+
+
+def recompute_market_price(market_id: int) -> "float | None":
+    """
+    Price = higher_shares / (higher_shares + lower_shares) * 100, clamped [5, 95].
+    Falls back to current_price if no positions exist.
+    """
+    db, conn = _acquire()
+    if conn is None:
+        return None
+    commit = False
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT
+                    COALESCE(SUM(shares) FILTER (WHERE side = 'higher'), 0) AS h,
+                    COALESCE(SUM(shares) FILTER (WHERE side = 'lower'),  0) AS l
+                FROM market_positions
+                WHERE market_id = %s AND status = 'open'
+                """,
+                (market_id,),
+            )
+            h_shares, l_shares = cur.fetchone()
+            total = h_shares + l_shares
+            if total > 0:
+                new_price = max(5.0, min(95.0, h_shares / total * 100))
+            else:
+                cur.execute("SELECT current_price FROM markets WHERE id = %s", (market_id,))
+                row = cur.fetchone()
+                new_price = row[0] if row else 50.0
+
+            cur.execute(
+                "UPDATE markets SET current_price = %s WHERE id = %s",
+                (new_price, market_id),
+            )
+        commit = True
+        return round(new_price, 2)
+    except Exception as e:
+        print(f"[DB] recompute_market_price error: {e}")
+        return None
+    finally:
+        _release(db, conn, commit=commit)
+
+
+# ---------------------------------------------------------------------------
+# Market positions
+# ---------------------------------------------------------------------------
+
+def add_position(
+    market_id: int,
+    user_id: "int | None",
+    bot_name: "str | None",
+    side: str,
+    stake: float,
+    price_cents: float,
+    shares: float,
+) -> "int | None":
+    db, conn = _acquire()
+    if conn is None:
+        return None
+    commit = False
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO market_positions
+                    (market_id, user_id, bot_name, side, stake, price_cents, shares)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                RETURNING id
+                """,
+                (market_id, user_id, bot_name, side, stake, price_cents, shares),
+            )
+            row = cur.fetchone()
+        commit = True
+        return row[0] if row else None
+    except Exception as e:
+        print(f"[DB] add_position error: {e}")
+        return None
+    finally:
+        _release(db, conn, commit=commit)
+
+
+def get_positions_for_market(market_id: int, user_id: "int | None" = None) -> list:
+    db, conn = _acquire()
+    if conn is None:
+        return []
+    try:
+        with conn.cursor() as cur:
+            if user_id is not None:
+                cur.execute(
+                    """
+                    SELECT id, market_id, user_id, bot_name, side, stake, price_cents,
+                           shares, status, payout, profit, created_at, settled_at
+                    FROM market_positions
+                    WHERE market_id = %s AND user_id = %s
+                    ORDER BY created_at DESC
+                    """,
+                    (market_id, user_id),
+                )
+            else:
+                cur.execute(
+                    """
+                    SELECT id, market_id, user_id, bot_name, side, stake, price_cents,
+                           shares, status, payout, profit, created_at, settled_at
+                    FROM market_positions
+                    WHERE market_id = %s
+                    ORDER BY created_at DESC
+                    """,
+                    (market_id,),
+                )
+            rows = cur.fetchall()
+        return [_position_row_to_dict(r) for r in rows]
+    except Exception as e:
+        print(f"[DB] get_positions_for_market error: {e}")
+        return []
+    finally:
+        _release(db, conn)
+
+
+def get_positions_for_user(user_id: int) -> list:
+    db, conn = _acquire()
+    if conn is None:
+        return []
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT p.id, p.market_id, p.user_id, p.bot_name, p.side,
+                       p.stake, p.price_cents, p.shares, p.status,
+                       p.payout, p.profit, p.created_at, p.settled_at,
+                       m.course_code, m.question_num, m.answer_num,
+                       m.question_name, m.answer, m.initial_prediction,
+                       m.upcoming_sem, m.upcoming_year, m.current_price,
+                       m.status AS market_status, m.resolution_result, m.resolution_side
+                FROM market_positions p
+                JOIN markets m ON m.id = p.market_id
+                WHERE p.user_id = %s
+                ORDER BY p.created_at DESC
+                """,
+                (user_id,),
+            )
+            rows = cur.fetchall()
+        result = []
+        for r in rows:
+            pos = _position_row_to_dict(r[:13])
+            pos.update({
+                "course_code":        r[13],
+                "question_num":       r[14],
+                "answer_num":         r[15],
+                "question_name":      r[16],
+                "answer":             r[17],
+                "initial_prediction": r[18],
+                "upcoming_sem":       r[19],
+                "upcoming_year":      r[20],
+                "current_price":      r[21],
+                "market_status":      r[22],
+                "resolution_result":  r[23],
+                "resolution_side":    r[24],
+            })
+            result.append(pos)
+        return result
+    except Exception as e:
+        print(f"[DB] get_positions_for_user error: {e}")
+        return []
+    finally:
+        _release(db, conn)
+
+
+def _position_row_to_dict(row) -> dict:
+    (id_, market_id, user_id, bot_name, side, stake, price_cents,
+     shares, status, payout, profit, created_at, settled_at) = row
+    return {
+        "id":          id_,
+        "market_id":   market_id,
+        "user_id":     user_id,
+        "bot_name":    bot_name,
+        "side":        side,
+        "stake":       stake,
+        "price_cents": price_cents,
+        "shares":      shares,
+        "status":      status,
+        "payout":      payout,
+        "profit":      profit,
+        "created_at":  created_at.isoformat() if created_at else None,
+        "settled_at":  settled_at.isoformat() if settled_at else None,
+    }
+
+
+def settle_positions(market_id: int, winning_side: str, resolution_result: float):
+    """
+    Marks positions won/lost/refunded, computes payouts, and credits user balances.
+    """
+    db, conn = _acquire()
+    if conn is None:
+        return
+    commit = False
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT id, user_id, side, stake, shares
+                FROM market_positions
+                WHERE market_id = %s AND status = 'open'
+                """,
+                (market_id,),
+            )
+            rows = cur.fetchall()
+
+            for pos_id, user_id, side, stake, shares in rows:
+                if winning_side == "push":
+                    new_status = "refunded"
+                    payout = stake
+                    profit = 0.0
+                elif side == winning_side:
+                    new_status = "won"
+                    payout = shares
+                    profit = shares - stake
+                else:
+                    new_status = "lost"
+                    payout = 0.0
+                    profit = -stake
+
+                cur.execute(
+                    """
+                    UPDATE market_positions
+                    SET status = %s, payout = %s, profit = %s, settled_at = NOW()
+                    WHERE id = %s
+                    """,
+                    (new_status, payout, profit, pos_id),
+                )
+
+                if user_id is not None and payout > 0:
+                    cur.execute(
+                        """
+                        UPDATE user_state
+                        SET balance = GREATEST(0, balance + %s)
+                        WHERE user_id = %s
+                        """,
+                        (payout, user_id),
+                    )
+        commit = True
+    except Exception as e:
+        print(f"[DB] settle_positions error: {e}")
     finally:
         _release(db, conn, commit=commit)

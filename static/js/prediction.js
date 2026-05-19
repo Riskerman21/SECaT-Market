@@ -4,6 +4,7 @@ const MARKET_WINDOW_SECONDS = 45;
 const BOT_TICK_MS = 1800;
 
 let currentMarket = null;
+let currentMarketId = null;   // DB market id, null for guests / no-DB
 let selectedSide = null;
 let positions = [];
 
@@ -332,14 +333,46 @@ function addPricePoint(price) {
     }
 }
 
-function loadSavedPositions() {
-    const saved = localStorage.getItem(POSITIONS_KEY);
+async function loadSavedPositions() {
+    if (isLoggedIn()) {
+        try {
+            const resp = await fetch("/api/user/positions");
+            if (resp.ok) {
+                const data = await resp.json();
+                if (Array.isArray(data.positions)) {
+                    positions = data.positions.map(p => ({
+                        id:         p.id,
+                        createdAt:  p.created_at,
+                        course:     p.course_code,
+                        courseName: p.course_code,
+                        question:   p.question_name,
+                        questionNum:p.question_num,
+                        answer:     p.answer,
+                        answerNum:  p.answer_num,
+                        prediction: p.initial_prediction,
+                        upcoming:   `Sem ${p.upcoming_sem} ${p.upcoming_year}`,
+                        side:       p.side,
+                        stake:      p.stake,
+                        priceCents: p.price_cents,
+                        shares:     p.shares,
+                        status:     p.status,
+                        payout:     p.payout,
+                        profit:     p.profit,
+                        resolvedResultPercent: p.resolution_result,
+                        market_id:  p.market_id,
+                    }));
+                    return;
+                }
+            }
+        } catch (_) {}
+    }
 
+    // Guest fallback
+    const saved = localStorage.getItem(POSITIONS_KEY);
     if (saved === null) {
         positions = [];
         return;
     }
-
     try {
         const parsed = JSON.parse(saved);
         positions = Array.isArray(parsed) ? parsed : [];
@@ -433,6 +466,36 @@ async function loadMarket(mode = "normal") {
         }
 
         currentMarket = data;
+        currentMarketId = null;
+
+        // Register / retrieve the shared DB market when logged in
+        if (isLoggedIn() && data.upcoming_offering) {
+            try {
+                const mResp = await fetch("/api/markets", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        course_code:        data.course,
+                        question_num:       data.question_num,
+                        answer_num:         data.answer_num,
+                        question_name:      data.question_name,
+                        answer:             data.answer,
+                        initial_prediction: data.initial_prediction,
+                        confidence:         data.confidence,
+                        upcoming_sem:       data.upcoming_offering.sem,
+                        upcoming_year:      data.upcoming_offering.year,
+                    }),
+                });
+                if (mResp.ok) {
+                    const mData = await mResp.json();
+                    currentMarketId = mData.id;
+                    // Use the live shared price as the starting price
+                    liveHigherPrice = Math.round(Math.max(5, Math.min(95, mData.current_price)));
+                    liveLowerPrice  = 100 - liveHigherPrice;
+                }
+            } catch (_) {}
+        }
+
         renderMarket(data);
 
         document.getElementById("loading").style.display = "none";
@@ -469,6 +532,7 @@ function backToSetup() {
 
     selectedSide = null;
     currentMarket = null;
+    currentMarketId = null;
 
     resetSelectionUI();
     updateWalletDisplay();
@@ -628,11 +692,36 @@ function closeLiveMarket() {
     document.getElementById("placeTradeButton").disabled = true;
 }
 
-function resolveLiveMarket() {
+async function resolveLiveMarket() {
     if (currentMarket === null || marketResolved) {
         return;
     }
 
+    // Try server-side settlement first when a DB market exists
+    if (currentMarketId !== null) {
+        try {
+            const resp = await fetch(`/api/markets/${currentMarketId}/settle`, { method: "POST" });
+            if (resp.ok) {
+                const data = await resp.json();
+                if (data.settled) {
+                    resolvedResultPercent = data.result_percent;
+                    resolvedWinningSide   = data.winning_side;
+                    marketResolved = true;
+
+                    // Reload server positions so payouts are reflected
+                    await loadSavedPositions();
+                    renderPositions();
+                    updateWalletDisplay();
+                    renderLeaderboard();
+
+                    _showSettleResult(resolvedResultPercent, resolvedWinningSide, "real data");
+                    return;
+                }
+            }
+        } catch (_) {}
+    }
+
+    // Fallback: use latest historical result as a demo proxy
     const latestHistory =
         currentMarket.history && currentMarket.history.length > 0
             ? currentMarket.history[0]
@@ -655,29 +744,26 @@ function resolveLiveMarket() {
 
     marketResolved = true;
     settlePositionsForCurrentMarket();
+    _showSettleResult(resolvedResultPercent, resolvedWinningSide, "latest historical result (demo)");
+}
 
+function _showSettleResult(resultPercent, winningSide, source) {
     const botFeed = document.getElementById("botFeedList");
-
     if (botFeed !== null) {
-        const resultText =
-            resolvedWinningSide === "push"
-                ? "PUSH / SAME"
-                : resolvedWinningSide.toUpperCase();
-
-        const resultRow = document.createElement("div");
-        resultRow.className = "bot-trade";
-        resultRow.innerHTML = `
+        const resultText = winningSide === "push" ? "PUSH / SAME" : winningSide.toUpperCase();
+        const row = document.createElement("div");
+        row.className = "bot-trade";
+        row.innerHTML = `
             <span><strong>Market Closed</strong> <span class="bot-buy">RESULT</span> ${resultText}</span>
-            <span>${resolvedResultPercent.toFixed(2)}%</span>
+            <span>${Number(resultPercent).toFixed(2)}%</span>
         `;
-
-        botFeed.prepend(resultRow);
+        botFeed.prepend(row);
     }
 
     alert(
         "Live market closed.\n\n" +
-        "Latest historical result used for demo: " + resolvedResultPercent.toFixed(2) + "%\n" +
-        "Winning side: " + resolvedWinningSide.toUpperCase()
+        `Result (${source}): ${Number(resultPercent).toFixed(2)}%\n` +
+        "Winning side: " + winningSide.toUpperCase()
     );
 }
 
@@ -783,15 +869,19 @@ async function fetchBotActivity() {
     }
 
     try {
-        const params = new URLSearchParams({
-            course: currentMarket.course,
-            question_num: currentMarket.question_num,
-            answer_num: currentMarket.answer_num,
-            market_key: currentMarket.market_key || "",
-            base_price: currentMarket.initial_prediction
-        });
-
-        const response = await fetch("/api/bot-activity?" + params.toString());
+        let response;
+        if (currentMarketId !== null) {
+            response = await fetch(`/api/markets/${currentMarketId}/bot-tick`, { method: "POST" });
+        } else {
+            // Guest / no-DB fallback: hit old-style endpoint (stateless)
+            const params = new URLSearchParams({
+                course:       currentMarket.course,
+                question_num: currentMarket.question_num,
+                answer_num:   currentMarket.answer_num,
+                base_price:   currentMarket.initial_prediction,
+            });
+            response = await fetch("/api/bot-activity-legacy?" + params.toString());
+        }
 
         if (!response.ok) {
             return;
@@ -809,22 +899,7 @@ async function fetchBotActivity() {
         liveHigherPrice = newHigherPrice;
         liveLowerPrice = 100 - liveHigherPrice;
 
-        data.bot_trades.forEach(trade => {
-            marketVolume += trade.size;
-            botTrades.unshift({
-                bot:trade.bot,
-                personality:trade.personality,
-                side:trade.direction.toLowerCase(),
-                size:trade.size,
-                belief:trade.belief,
-                higherPrice:liveHigherPrice,
-                lowerPrice:liveLowerPrice,
-                time:new Date().toLocaleTimeString()
-            });
-        });
-
-        botTrades = botTrades.slice(0, 8);
-        renderBotFeed();
+        _appendBotTrades(data.bot_trades);
 
         if (priceChanged) {
             updateLivePrices();
@@ -991,72 +1066,116 @@ async function placeTrade() {
         return;
     }
 
+    if (!isLoggedIn()) {
+        openAuthModal();
+        return;
+    }
+
     const stake = Number(document.getElementById("stakeInput").value || 0);
-    const currentBalance = getWalletBalance();
 
     if (stake <= 0) {
         alert("Enter a stake greater than zero.");
         return;
     }
 
-    if (stake > currentBalance) {
+    if (stake > getWalletBalance()) {
         alert("Not enough SECaT Coins. Play Higher or Lower to earn more.");
         return;
     }
 
     const priceCents = selectedSide === "higher" ? liveHigherPrice : liveLowerPrice;
-    const price = priceCents / 100;
-    const shares = stake / price;
+    const shares     = stake / (priceCents / 100);
 
-    const spent = spendCoins(stake);
+    if (currentMarketId !== null) {
+        // Server-side trade
+        try {
+            const response = await fetch(`/api/markets/${currentMarketId}/trade`, {
+                method:  "POST",
+                headers: { "Content-Type": "application/json" },
+                body:    JSON.stringify({ direction: selectedSide, stake }),
+            });
 
-    if (!spent) {
-        alert("Not enough SECaT Coins.");
-        return;
+            if (response.status === 401) {
+                openAuthModal();
+                return;
+            }
+
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
+                alert(err.error || "Trade failed.");
+                return;
+            }
+
+            const data = await response.json();
+
+            // Server deducted balance — sync locally
+            if (typeof data.new_balance === "number") {
+                _authBalance = data.new_balance;
+                updateWalletDisplay();
+            }
+
+            const newHigherPrice = Math.round(Math.max(5, Math.min(95, data.new_price)));
+            liveHigherPrice = newHigherPrice;
+            liveLowerPrice  = 100 - liveHigherPrice;
+
+            _appendBotTrades(data.bot_trades || []);
+
+            // Record position locally from server response
+            const pos = data.position || {};
+            positions.push({
+                id:         Date.now().toString() + "_" + Math.random().toString(16).slice(2),
+                createdAt:  new Date().toISOString(),
+                course:     currentMarket.course,
+                courseName: currentMarket.name,
+                question:   currentMarket.question_name,
+                questionNum:currentMarket.question_num,
+                answer:     currentMarket.answer,
+                answerNum:  currentMarket.answer_num,
+                prediction: currentMarket.initial_prediction,
+                confidence: currentMarket.confidence,
+                upcoming:   currentMarket.upcoming_offering
+                    ? currentMarket.upcoming_offering.label : "Upcoming offering",
+                side:       selectedSide,
+                stake:      pos.stake ?? stake,
+                priceCents: pos.price_cents ?? priceCents,
+                shares:     pos.shares ?? shares,
+                marketMode: currentMarketMode,
+                status:     "open",
+                market_id:  currentMarketId,
+            });
+        } catch (error) {
+            alert("Network error placing trade.");
+            return;
+        }
+    } else {
+        // Guest / no-DB path — deduct locally
+        if (!spendCoins(stake)) {
+            alert("Not enough SECaT Coins.");
+            return;
+        }
+        positions.push({
+            id:         Date.now().toString() + "_" + Math.random().toString(16).slice(2),
+            createdAt:  new Date().toISOString(),
+            course:     currentMarket.course,
+            courseName: currentMarket.name,
+            question:   currentMarket.question_name,
+            questionNum:currentMarket.question_num,
+            answer:     currentMarket.answer,
+            answerNum:  currentMarket.answer_num,
+            prediction: currentMarket.initial_prediction,
+            confidence: currentMarket.confidence,
+            upcoming:   currentMarket.upcoming_offering
+                ? currentMarket.upcoming_offering.label : "Upcoming offering",
+            side:       selectedSide,
+            stake,
+            priceCents,
+            shares,
+            marketMode: currentMarketMode,
+            status:     "open",
+        });
     }
 
-    try {
-        const response = await fetch("/api/trade", {
-            method:"POST",
-            headers:{
-                "Content-Type":"application/json"
-            },
-            body:JSON.stringify({
-                market_key:currentMarket.market_key || "",
-                base_price:currentMarket.initial_prediction,
-                direction:selectedSide.toUpperCase(),
-                size:Math.round(stake)
-            })
-        });
-
-        if (response.ok) {
-            const data = await response.json();
-            const newHigherPrice = Math.round(Math.max(5, Math.min(95, data.new_price)));
-
-            liveHigherPrice = newHigherPrice;
-            liveLowerPrice = 100 - liveHigherPrice;
-
-            if (data.bot_trades && data.bot_trades.length > 0) {
-                data.bot_trades.forEach(trade => {
-                    marketVolume += trade.size;
-                    botTrades.unshift({
-                        bot:trade.bot,
-                        personality:trade.personality,
-                        side:trade.direction.toLowerCase(),
-                        size:trade.size,
-                        belief:trade.belief,
-                        higherPrice:liveHigherPrice,
-                        lowerPrice:liveLowerPrice,
-                        time:new Date().toLocaleTimeString()
-                    });
-                });
-
-                botTrades = botTrades.slice(0, 8);
-                renderBotFeed();
-            }
-        }
-    } catch (error) {}
-
+    savePositions();
     marketVolume += stake;
 
     if (currentMarketMode === "live") {
@@ -1066,36 +1185,7 @@ async function placeTrade() {
     }
 
     updateLivePrices();
-
-    const position = {
-        id:Date.now().toString() + "_" + Math.random().toString(16).slice(2),
-        createdAt:new Date().toISOString(),
-        course:currentMarket.course,
-        courseName:currentMarket.name,
-        question:currentMarket.question_name,
-        questionNum:currentMarket.question_num,
-        answer:currentMarket.answer,
-        answerNum:currentMarket.answer_num,
-        prediction:currentMarket.initial_prediction,
-        confidence:currentMarket.confidence,
-        upcoming:currentMarket.upcoming_offering
-            ? currentMarket.upcoming_offering.label
-            : "Upcoming offering",
-        side:selectedSide,
-        stake:stake,
-        priceCents:priceCents,
-        shares:shares,
-        marketMode:currentMarketMode,
-        currentLivePriceHigher:liveHigherPrice,
-        currentLivePriceLower:liveLowerPrice,
-        status:"open"
-    };
-
-    positions.push(position);
-    savePositions();
-
     addBetToLeaderboard();
-
     unlockAchievement("first_bet");
 
     if (positions.length >= 5) {
@@ -1110,8 +1200,7 @@ async function placeTrade() {
         unlockAchievement("big_spender");
     }
 
-    const openPositions = positions.filter(position => position.status === "open");
-
+    const openPositions = positions.filter(p => p.status === "open");
     if (openPositions.length >= 3) {
         unlockAchievement("diamond_hands");
     }
@@ -1121,10 +1210,28 @@ async function placeTrade() {
     updateWalletDisplay();
     renderLeaderboard();
 
-    alert(`Bet saved: ${selectedSide.toUpperCase()} ${stake.toFixed(0)} SC at ${priceCents}¢.`);
+    alert(`Bet placed: ${selectedSide.toUpperCase()} ${stake.toFixed(0)} SC at ${priceCents}¢.`);
 
     selectedSide = null;
     resetSelectionUI();
+}
+
+function _appendBotTrades(trades) {
+    trades.forEach(trade => {
+        marketVolume += trade.size;
+        botTrades.unshift({
+            bot:        trade.bot,
+            personality:trade.personality,
+            side:       (trade.direction || "higher").toLowerCase(),
+            size:       trade.size,
+            belief:     trade.belief,
+            higherPrice:liveHigherPrice,
+            lowerPrice: liveLowerPrice,
+            time:       new Date().toLocaleTimeString(),
+        });
+    });
+    botTrades = botTrades.slice(0, 8);
+    renderBotFeed();
 }
 
 function renderPositions() {
@@ -1208,8 +1315,8 @@ function resetWalletForTesting() {
     setWalletBalance(STARTING_BALANCE);
 }
 
-onAuthReady(function () {
+onAuthReady(async function () {
     loadCourses();
-    loadSavedPositions();
+    await loadSavedPositions();
     renderPositions();
 });
