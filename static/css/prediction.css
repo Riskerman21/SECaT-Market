@@ -809,6 +809,140 @@ input {
     to { opacity:1; transform:translateY(0); }
 }
 
+/* ---------------------------------------------------------------------------
+ * Market browser
+ * ---------------------------------------------------------------------------*/
+
+.browser-section {
+    margin-top:20px;
+}
+
+.browser-header {
+    margin-bottom:20px;
+}
+
+.market-grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));
+    gap:16px;
+}
+
+.market-loading,
+.market-empty {
+    color:var(--muted);
+    font-size:15px;
+    padding:24px 0;
+}
+
+.market-card {
+    background:rgba(15,23,42,.88);
+    border:1px solid var(--border);
+    border-radius:24px;
+    padding:20px;
+    box-shadow:0 8px 32px rgba(0,0,0,.22);
+    backdrop-filter:blur(12px);
+    transition:transform .18s ease, box-shadow .18s ease;
+}
+
+.market-card:hover {
+    transform:translateY(-4px);
+    box-shadow:0 16px 48px rgba(0,0,0,.32);
+}
+
+.market-card.market-resolved {
+    opacity:.55;
+}
+
+.market-card-course {
+    font-size:28px;
+    font-weight:950;
+    letter-spacing:-.05em;
+    margin-bottom:8px;
+}
+
+.market-card-question {
+    color:#cbd5e1;
+    font-size:14px;
+    line-height:1.4;
+    margin-bottom:16px;
+    min-height:40px;
+}
+
+.market-card-footer {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:8px;
+}
+
+.market-card-upcoming {
+    color:var(--muted);
+    font-size:12px;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+}
+
+.market-card-status {
+    font-size:12px;
+    font-weight:950;
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:.06em;
+}
+
+.price-higher {
+    background:rgba(34,197,94,.18);
+    color:#86efac;
+    border:1px solid rgba(34,197,94,.30);
+    padding:5px 12px;
+    border-radius:999px;
+    font-size:15px;
+    font-weight:950;
+}
+
+.price-lower {
+    background:rgba(239,68,68,.18);
+    color:#fca5a5;
+    border:1px solid rgba(239,68,68,.30);
+    padding:5px 12px;
+    border-radius:999px;
+    font-size:15px;
+    font-weight:950;
+}
+
+/* ---------------------------------------------------------------------------
+ * Guest trade overlay
+ * ---------------------------------------------------------------------------*/
+
+.guest-trade-overlay {
+    background:rgba(2,6,23,.72);
+    border:1px solid rgba(148,163,184,.22);
+    border-radius:20px;
+    padding:24px 20px;
+    text-align:center;
+    margin-bottom:14px;
+}
+
+.guest-trade-lock {
+    font-size:36px;
+    margin-bottom:12px;
+}
+
+.guest-trade-msg {
+    font-size:20px;
+    font-weight:950;
+    margin-bottom:8px;
+    letter-spacing:-.03em;
+}
+
+.guest-trade-overlay p {
+    color:var(--muted);
+    font-size:14px;
+    margin:0 0 16px;
+    line-height:1.45;
+}
+
 @media (max-width:980px) {
     .intro-layout,
     .market-layout {

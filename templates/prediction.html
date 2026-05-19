@@ -17,55 +17,18 @@
                 </div>
             </div>
 
-            <div id="setupSection" class="intro-layout">
-                <div class="hero-card">
-                    <h1>Prediction Market</h1>
-                    <p>Build a normal market for open bets, or build a live demo market where bots trade for a short window and the market resolves using the latest historical result.</p>
-                    <div class="coin-badge">
-                        <div class="coin-icon">🪙</div>
-                        <div class="wallet-balance">0 SC</div>
+            <div id="browserSection" class="browser-section">
+                <div class="browser-header">
+                    <div class="hero-card">
+                        <h1>Prediction Market</h1>
+                        <p>Browse live markets and bet on whether SECaT ratings for upcoming semesters will be higher or lower than the model prediction.</p>
+                        <div class="coin-badge">
+                            <div class="coin-icon">🪙</div>
+                            <div class="wallet-balance">0 SC</div>
+                        </div>
                     </div>
                 </div>
-
-                <aside class="setup-panel">
-                    <div class="setup-title">Create Market</div>
-                    <div class="setup-subtitle">Normal market stays open. Live market auto-closes and settles using the latest result.</div>
-
-                    <div class="selector-box">
-                        <label for="courseSelect">Course</label>
-                        <select id="courseSelect"><option value="">Loading courses...</option></select>
-                    </div>
-
-                    <div class="selector-box">
-                        <label for="questionSelect">Question</label>
-                        <select id="questionSelect">
-                            <option value="1">Q1: Understand Aims &amp; Goals</option>
-                            <option value="2">Q2: Intellectually Stimulating</option>
-                            <option value="3">Q3: Well Structured</option>
-                            <option value="4">Q4: Learning Materials Assisted</option>
-                            <option value="5">Q5: Assessment Reqs Clear</option>
-                            <option value="6">Q6: Received Helpful Feedback</option>
-                            <option value="7">Q7: Learned a lot</option>
-                            <option value="8">Q8: Overall Rating</option>
-                        </select>
-                    </div>
-
-                    <div class="selector-box">
-                        <label for="answerSelect">Prediction target</label>
-                        <select id="answerSelect">
-                            <option value="1">1 Strongly Agree</option>
-                            <option value="4">4 Disagree</option>
-                        </select>
-                    </div>
-
-                    <div class="button-row">
-                        <button class="primary-btn" onclick="loadMarket('normal')">Build Market</button>
-                        <button class="higher-btn" onclick="loadMarket('live')">Build Live Market</button>
-                    </div>
-
-                    <div class="loading" id="loading">Building market from cached SECaT data...</div>
-                    <div class="message" id="choiceMessage"></div>
-                </aside>
+                <div id="marketGrid" class="market-grid"></div>
             </div>
 
             <div id="marketSection" class="market-section">
@@ -191,20 +154,30 @@
                             <button class="lower-btn" id="lowerButton" onclick="selectSide('lower')" disabled>Buy Lower</button>
                         </div>
 
-                        <div class="selector-box">
-                            <label for="stakeInput">Stake in SECaT Coins</label>
-                            <input id="stakeInput" type="number" min="1" step="1" value="100" oninput="updateTradeSummary()">
+                        <div id="guestTradeOverlay" class="guest-trade-overlay" style="display:none;">
+                            <div class="guest-trade-lock">🔒</div>
+                            <div class="guest-trade-msg">Sign in to trade</div>
+                            <p>Create a free account to place bets and track your portfolio.</p>
+                            <button class="primary-btn" onclick="openAuthModal()">Sign In to Trade</button>
                         </div>
 
-                        <div class="trade-summary">
-                            <div class="summary-row"><span>Market price</span><strong id="selectedPrice">--</strong></div>
-                            <div class="summary-row"><span>Estimated shares</span><strong id="estimatedShares">--</strong></div>
-                            <div class="summary-row"><span>Potential payout</span><strong id="potentialPayout">--</strong></div>
-                            <div class="summary-row"><span>Potential profit</span><strong id="potentialProfit">--</strong></div>
+                        <div id="tradeForm">
+                            <div class="selector-box">
+                                <label for="stakeInput">Stake in SECaT Coins</label>
+                                <input id="stakeInput" type="number" min="1" step="1" value="100" oninput="updateTradeSummary()">
+                            </div>
+
+                            <div class="trade-summary">
+                                <div class="summary-row"><span>Market price</span><strong id="selectedPrice">--</strong></div>
+                                <div class="summary-row"><span>Estimated shares</span><strong id="estimatedShares">--</strong></div>
+                                <div class="summary-row"><span>Potential payout</span><strong id="potentialPayout">--</strong></div>
+                                <div class="summary-row"><span>Potential profit</span><strong id="potentialProfit">--</strong></div>
+                            </div>
+
+                            <button class="primary-btn" id="placeTradeButton" onclick="placeTrade()" disabled>Place Trade</button>
                         </div>
 
-                        <button class="primary-btn" id="placeTradeButton" onclick="placeTrade()" disabled>Place Fake Trade</button>
-                        <button class="secondary-btn" onclick="backToSetup()">Build Another Market</button>
+                        <button class="secondary-btn" onclick="backToSetup()">Browse Markets</button>
                         <button class="secondary-btn" onclick="resetPortfolio()">Reset Saved Bets</button>
                         <button class="secondary-btn" onclick="resetWalletForTesting()">Reset Wallet to 500 SC</button>
 

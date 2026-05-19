@@ -11,11 +11,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 import secat_cache
 from game import prepare_round, get_course_group_list, prepare_challenger
-from prediction_market import (
-    create_random_prediction_market,
-    create_prediction_market_for_course_code,
-    get_course_list,
-)
+from prediction_market import get_course_list
 from bots import create_bots, run_bot_round, summarise_trades
 
 app = Flask(__name__)
@@ -55,18 +51,36 @@ def _publish(event_data: dict):
 
 
 def _bot_loop():
-    """Background SSE loop — generates crowd-sentiment events every 2-5 s."""
+    """Background loop — runs bot ticks on random open DB markets every 2-5 s."""
     while True:
         time.sleep(random.uniform(2, 5))
-        market = create_random_prediction_market()
-        if market is None:
+
+        if not secat_cache.db_available():
             continue
 
-        base_price = float(market["initial_prediction"])
-        current    = base_price
+        open_markets = secat_cache.get_open_markets(limit=20)
+        if not open_markets:
+            continue
+
+        market_row = random.choice(open_markets)
+        market_id  = market_row["id"]
+        current    = market_row["current_price"]
+        stub       = _stub_market_from_db(market_row)
 
         with _bots_lock:
-            trades = run_bot_round(_bots, market, current)
+            trades = run_bot_round(_bots, stub, current)
+
+        for trade in trades:
+            stake  = float(trade["size"])
+            shares = stake / (current / 100) if current > 0 else stake
+            secat_cache.add_position(
+                market_id, None, trade["bot"],
+                trade["direction"].lower(), stake, current, shares,
+            )
+
+        new_price = secat_cache.recompute_market_price(market_id)
+        if new_price is None:
+            new_price = current
 
         summary = summarise_trades(trades) if trades else {
             "implied_price": 50.0, "sentiment": "neutral"
@@ -80,10 +94,10 @@ def _bot_loop():
         else:               sentiment = "strongly bearish"
 
         event = {
-            "course":        market["course"],
-            "name":          market["name"],
-            "prediction":    base_price,
-            "confidence":    market["confidence"],
+            "course":        market_row["course_code"],
+            "name":          market_row["course_code"],
+            "prediction":    market_row["initial_prediction"],
+            "confidence":    market_row["confidence"],
             "implied_price": implied,
             "sentiment":     sentiment,
             "ts":            time.time(),
@@ -97,7 +111,7 @@ def _bot_loop():
         _publish(event)
 
 
-#threading.Thread(target=_bot_loop, daemon=True).start()
+threading.Thread(target=_bot_loop, daemon=True).start()
 
 
 # Routes
@@ -319,36 +333,19 @@ def _stub_market_from_db(market_row: dict) -> dict:
 # Market routes (Phase 2a)
 # ---------------------------------------------------------------------------
 
-@app.route("/api/bot-activity-legacy")
-def api_bot_activity_legacy():
-    """Stateless bot tick for guests / no-DB mode."""
-    base_price = float(request.args.get("base_price", 50))
-    course     = request.args.get("course", "UNKNOWN")
-    q_num      = request.args.get("question_num", "1")
-    a_num      = request.args.get("answer_num", "1")
-
-    stub_market = {
-        "course":             course,
-        "question_num":       q_num,
-        "answer_num":         a_num,
-        "initial_prediction": base_price,
-        "history":            [{"percent": base_price}],
-        "confidence":         50,
-    }
-
-    with _bots_lock:
-        trades = run_bot_round(_bots, stub_market, base_price)
-
-    higher = sum(t["size"] for t in trades if t["direction"] == "HIGHER")
-    lower  = sum(t["size"] for t in trades if t["direction"] == "LOWER")
-    total  = higher + lower
-    new_price = max(5.0, min(95.0, higher / total * 100)) if total else base_price
-
-    return jsonify({"bot_trades": trades, "current_price": round(new_price, 2)})
+@app.route("/api/markets")
+def api_get_markets():
+    if not secat_cache.db_available():
+        return jsonify({"markets": []})
+    return jsonify({"markets": secat_cache.get_all_markets()})
 
 
 @app.route("/api/markets", methods=["POST"])
 def api_create_market():
+    uid = _current_user_id()
+    if uid is None:
+        return jsonify({"error": "Login required to create a market."}), 401
+
     data = request.get_json(silent=True) or {}
 
     course_code   = data.get("course_code", "")
@@ -599,25 +596,6 @@ def api_courses():
 def api_course_groups():
     return jsonify({"groups": get_course_group_list()})
 
-
-@app.route("/api/prediction-market")
-def api_prediction_market():
-    selected_course = request.args.get("course")
-    question_num    = request.args.get("question_num", type=int)
-    answer_num      = request.args.get("answer_num",  type=int)
-    if selected_course:
-        market = create_prediction_market_for_course_code(
-            selected_course,
-            question_num=question_num,
-            answer_num=answer_num,
-        )
-    else:
-        market = create_random_prediction_market()
-    if market is None:
-        return jsonify({"error": "Could not create a prediction market."}), 500
-
-
-    return jsonify(market)
 
 @app.route("/api/challenger")
 def api_challenger():

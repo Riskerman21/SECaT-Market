@@ -1153,6 +1153,29 @@ def get_open_markets(limit: int = 20) -> list:
         _release(db, conn)
 
 
+def get_all_markets(limit: int = 50) -> list:
+    db, conn = _acquire()
+    if conn is None:
+        return []
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"""
+                SELECT {_MARKET_COLS} FROM markets
+                ORDER BY created_at DESC
+                LIMIT %s
+                """,
+                (limit,),
+            )
+            rows = cur.fetchall()
+        return [_market_row_to_dict(r) for r in rows]
+    except Exception as e:
+        print(f"[DB] get_all_markets error: {e}")
+        return []
+    finally:
+        _release(db, conn)
+
+
 def recompute_market_price(market_id: int) -> "float | None":
     """
     Price = higher_shares / (higher_shares + lower_shares) * 100, clamped [5, 95].
