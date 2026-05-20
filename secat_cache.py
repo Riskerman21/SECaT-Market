@@ -1226,7 +1226,6 @@ def recompute_market_price(market_id: int) -> "float | None":
 def add_position(
     market_id: int,
     user_id: "int | None",
-    bot_name: "str | None",
     side: str,
     stake: float,
     price_cents: float,
@@ -1241,11 +1240,11 @@ def add_position(
             cur.execute(
                 """
                 INSERT INTO market_positions
-                    (market_id, user_id, bot_name, side, stake, price_cents, shares)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    (market_id, user_id, side, stake, price_cents, shares)
+                VALUES (%s, %s, %s, %s, %s, %s)
                 RETURNING id
                 """,
-                (market_id, user_id, bot_name, side, stake, price_cents, shares),
+                (market_id, user_id, side, stake, price_cents, shares),
             )
             row = cur.fetchone()
         commit = True

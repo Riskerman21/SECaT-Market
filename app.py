@@ -1,7 +1,6 @@
 import json
 import os
 import queue
-import random
 import threading
 import time
 from datetime import timedelta
@@ -12,7 +11,6 @@ from werkzeug.security import check_password_hash, generate_password_hash
 import secat_cache
 from game import prepare_round, get_course_group_list, prepare_challenger
 from prediction_market import get_course_list
-from bots import create_bots, run_bot_round, summarise_trades
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-in-production")
@@ -31,10 +29,6 @@ _trade_log   = []
 _subscribers = []
 _feed_lock   = threading.Lock()
 
-# One shared bot roster — bots persist balance across ticks
-_bots = create_bots()
-_bots_lock = threading.Lock()
-
 
 
 def _publish(event_data: dict):
@@ -48,70 +42,6 @@ def _publish(event_data: dict):
                 dead.append(q)
         for q in dead:
             _subscribers.remove(q)
-
-
-def _bot_loop():
-    """Background loop — runs bot ticks on random open DB markets every 2-5 s."""
-    while True:
-        time.sleep(random.uniform(2, 5))
-
-        if not secat_cache.db_available():
-            continue
-
-        open_markets = secat_cache.get_open_markets(limit=20)
-        if not open_markets:
-            continue
-
-        market_row = random.choice(open_markets)
-        market_id  = market_row["id"]
-        current    = market_row["current_price"]
-        stub       = _stub_market_from_db(market_row)
-
-        with _bots_lock:
-            trades = run_bot_round(_bots, stub, current)
-
-        for trade in trades:
-            stake  = float(trade["size"])
-            shares = stake / (current / 100) if current > 0 else stake
-            secat_cache.add_position(
-                market_id, None, trade["bot"],
-                trade["direction"].lower(), stake, current, shares,
-            )
-
-        new_price = secat_cache.recompute_market_price(market_id)
-        if new_price is None:
-            new_price = current
-
-        summary = summarise_trades(trades) if trades else {
-            "implied_price": 50.0, "sentiment": "neutral"
-        }
-
-        implied = summary["implied_price"]
-        if   implied >= 70: sentiment = "strongly bullish"
-        elif implied >= 55: sentiment = "bullish"
-        elif implied >= 45: sentiment = "neutral"
-        elif implied >= 30: sentiment = "bearish"
-        else:               sentiment = "strongly bearish"
-
-        event = {
-            "course":        market_row["course_code"],
-            "name":          market_row["course_code"],
-            "prediction":    market_row["initial_prediction"],
-            "confidence":    market_row["confidence"],
-            "implied_price": implied,
-            "sentiment":     sentiment,
-            "ts":            time.time(),
-        }
-
-        with _feed_lock:
-            _trade_log.append(event)
-            if len(_trade_log) > 200:
-                _trade_log.pop(0)
-
-        _publish(event)
-
-
-threading.Thread(target=_bot_loop, daemon=True).start()
 
 
 # Routes
@@ -317,20 +247,8 @@ def trade_feed():
     )
 
 
-def _stub_market_from_db(market_row: dict) -> dict:
-    """Build minimal market dict bots need from a DB market row."""
-    return {
-        "course":             market_row["course_code"],
-        "question_num":       market_row["question_num"],
-        "answer_num":         market_row["answer_num"],
-        "initial_prediction": market_row["initial_prediction"],
-        "history":            [{"percent": market_row["initial_prediction"]}],
-        "confidence":         market_row["confidence"],
-    }
-
-
 # ---------------------------------------------------------------------------
-# Market routes (Phase 2a)
+# Market routes
 # ---------------------------------------------------------------------------
 
 @app.route("/api/markets")
@@ -381,6 +299,15 @@ def api_get_market(market_id: int):
     market = secat_cache.get_market(market_id)
     if market is None:
         return jsonify({"error": "Market not found."}), 404
+
+    history_data = secat_cache.get_cached_market(
+        market["course_code"], market["question_num"], market["answer_num"], 5
+    )
+    if history_data:
+        market["history"]       = history_data.get("history", [])
+        market["history_count"] = history_data.get("history_count", len(market.get("history", [])))
+        market["name"]          = history_data.get("name", "")
+
     return jsonify(market)
 
 
@@ -391,40 +318,13 @@ def api_open_markets():
     return jsonify({"markets": secat_cache.get_open_markets()})
 
 
-@app.route("/api/markets/<int:market_id>/bot-tick", methods=["POST"])
-def api_bot_tick(market_id: int):
+@app.route("/api/markets/<int:market_id>/positions")
+def api_market_positions(market_id: int):
     if not secat_cache.db_available():
-        return jsonify({"error": "Database unavailable."}), 503
-
-    market_row = secat_cache.get_market(market_id)
-    if market_row is None:
-        return jsonify({"error": "Market not found."}), 404
-    if market_row["status"] != "open":
-        return jsonify({"error": "Market is closed."}), 400
-
-    current = market_row["current_price"]
-    stub    = _stub_market_from_db(market_row)
-
-    with _bots_lock:
-        trades = run_bot_round(_bots, stub, current)
-
-    for trade in trades:
-        price_cents = current
-        stake       = float(trade["size"])
-        shares      = stake / (price_cents / 100) if price_cents > 0 else stake
-        secat_cache.add_position(
-            market_id, None, trade["bot"],
-            trade["direction"].lower(), stake, price_cents, shares,
-        )
-
-    new_price = secat_cache.recompute_market_price(market_id)
-    if new_price is None:
-        new_price = current
-
-    return jsonify({
-        "bot_trades":    trades,
-        "current_price": round(new_price, 2),
-    })
+        return jsonify({"positions": []})
+    all_positions = secat_cache.get_positions_for_market(market_id)
+    human = [p for p in all_positions if p.get("bot_name") is None]
+    return jsonify({"positions": human})
 
 
 @app.route("/api/markets/<int:market_id>/trade", methods=["POST"])
@@ -465,29 +365,36 @@ def api_market_trade(market_id: int):
         return jsonify({"error": "Could not update balance."}), 500
 
     secat_cache.add_position(
-        market_id, uid, None, direction, stake, price_cents, shares,
+        market_id, uid, direction, stake, price_cents, shares,
     )
-
-    stub = _stub_market_from_db(market_row)
-    with _bots_lock:
-        bot_trades = run_bot_round(_bots, stub, current)
-
-    for trade in bot_trades:
-        bp     = current
-        bstake = float(trade["size"])
-        bshares = bstake / (bp / 100) if bp > 0 else bstake
-        secat_cache.add_position(
-            market_id, None, trade["bot"],
-            trade["direction"].lower(), bstake, bp, bshares,
-        )
 
     new_price = secat_cache.recompute_market_price(market_id)
     if new_price is None:
         new_price = current
 
+    if   new_price >= 70: sentiment = "strongly bullish"
+    elif new_price >= 55: sentiment = "bullish"
+    elif new_price >= 45: sentiment = "neutral"
+    elif new_price >= 30: sentiment = "bearish"
+    else:                 sentiment = "strongly bearish"
+
+    event = {
+        "market_id":    market_id,
+        "course":       market_row["course_code"],
+        "direction":    direction,
+        "stake":        stake,
+        "implied_price": round(new_price, 2),
+        "sentiment":    sentiment,
+        "ts":           time.time(),
+    }
+    with _feed_lock:
+        _trade_log.append(event)
+        if len(_trade_log) > 200:
+            _trade_log.pop(0)
+    _publish(event)
+
     return jsonify({
         "new_price":   round(new_price, 2),
-        "bot_trades":  bot_trades,
         "new_balance": new_balance,
         "position": {
             "side":        direction,

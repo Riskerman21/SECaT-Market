@@ -552,7 +552,7 @@ def summarise_trades(market: dict) -> dict:
     """
     Derives a crowd-sentiment signal from a market dict.
 
-    implied_price  – a 0–100 probability that bots collectively assign to
+    implied_price  – a 0–100 probability the market assigns to
                      the answer being "true" for the upcoming semester.
                      Blends the weighted prediction with confidence so a
                      high-confidence 70% prediction scores higher than a

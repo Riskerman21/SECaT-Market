@@ -1,16 +1,12 @@
-const BOT_TICK_MS = 1800;
-
 let currentMarket = null;
 let currentMarketId = null;
 let selectedSide = null;
 let positions = [];
 
 let marketOpen = false;
-let botInterval = null;
 
 let liveHigherPrice = 50;
 let liveLowerPrice = 50;
-let botTrades = [];
 let marketVolume = 0;
 
 let sseSource = null;
@@ -113,43 +109,54 @@ function updateSentimentFromSSE(trade) {
 }
 
 function appendSSETradeToFeed(trade) {
-    if (!currentMarket) return;
+    if (!currentMarketId || trade.market_id !== currentMarketId) return;
 
-    const list = document.getElementById("botFeedList");
+    const list = document.getElementById("activityFeedList");
     if (!list) return;
 
-    if (
-        list.innerText === "Market has not opened yet." ||
-        list.innerText === "Loading market activity..."
-    ) {
+    if (list.dataset.empty === "true") {
         list.innerHTML = "";
+        list.dataset.empty = "false";
     }
 
     const row = document.createElement("div");
-    row.className = "bot-trade bot-trade-new";
+    row.className = "trade-entry trade-entry-new";
 
-    const isBuy =
-        trade.sentiment === "strongly bullish" ||
-        trade.sentiment === "bullish";
-
-    const dirClass = isBuy ? "bot-buy" : "bot-sell";
-    const dirLabel = isBuy ? "BUY" : "SELL";
+    const dirClass = trade.direction === "higher" ? "trade-buy" : "trade-sell";
+    const dirLabel = trade.direction === "higher" ? "HIGHER" : "LOWER";
 
     row.innerHTML = `
         <span>
-            <strong>${trade.course}</strong>
             <span class="${dirClass}">${dirLabel}</span>
-            <span style="color:#94a3b8;font-size:12px;">${trade.sentiment}</span>
+            <span style="color:#94a3b8;font-size:12px;">${Number(trade.stake).toFixed(0)} SC</span>
         </span>
         <span>${impliedPriceLabel(trade.implied_price)}</span>
     `;
 
     list.prepend(row);
     while (list.children.length > 8) list.removeChild(list.lastChild);
+
+    updateSentimentFromSSE(trade);
+    liveHigherPrice = Math.round(Math.max(5, Math.min(95, trade.implied_price)));
+    liveLowerPrice  = 100 - liveHigherPrice;
+    updateLivePrices();
+    updateTradeSummary();
+    marketVolume += Number(trade.stake);
+    const vol = document.getElementById("marketVolume");
+    if (vol) vol.innerText = Math.round(marketVolume) + " SC";
 }
 
 function impliedPriceLabel(p) {
     return Number(p).toFixed(1) + "¢";
+}
+
+function initSentiment(price) {
+    const s = price >= 70 ? "strongly bullish"
+            : price >= 55 ? "bullish"
+            : price >= 45 ? "neutral"
+            : price >= 30 ? "bearish"
+            : "strongly bearish";
+    updateSentimentFromSSE({ implied_price: price, sentiment: s });
 }
 
 // ---------------------------------------------------------------------------
@@ -316,12 +323,6 @@ async function loadMarkets() {
 }
 
 async function openMarket(marketId) {
-    // Stop any running bot polling from a previous market
-    if (botInterval !== null) {
-        clearInterval(botInterval);
-        botInterval = null;
-    }
-
     try {
         const resp = await fetch(`/api/markets/${marketId}`);
         if (!resp.ok) return;
@@ -330,7 +331,6 @@ async function openMarket(marketId) {
         currentMarket   = row;
         currentMarketId = marketId;
         selectedSide    = null;
-        botTrades       = [];
         marketVolume    = 0;
         marketOpen      = row.status === "open";
 
@@ -349,14 +349,9 @@ async function openMarket(marketId) {
         updateTradeSummary();
         updateWalletDisplay();
         renderLeaderboard();
+        initSentiment(liveHigherPrice);
 
-        document.getElementById("botFeedList").innerText = "Loading market activity…";
-
-        if (marketOpen) {
-            fetchBotActivity();
-            botInterval = setInterval(fetchBotActivity, BOT_TICK_MS);
-        }
-
+        await loadMarketActivity();
         startSSEFeed();
 
         await loadSavedPositions();
@@ -375,7 +370,7 @@ function renderMarketFromRow(row) {
     const upcomingLabel = `Semester ${row.upcoming_sem}, ${row.upcoming_year}`;
 
     document.getElementById("courseCode").innerText    = row.course_code;
-    document.getElementById("courseName").innerText    = row.course_code;
+    document.getElementById("courseName").innerText    = row.name || row.course_code;
     document.getElementById("marketBadge").innerText   = upcomingLabel;
 
     document.getElementById("marketQuestion").innerHTML =
@@ -392,7 +387,9 @@ function renderMarketFromRow(row) {
         prediction.toFixed(2) + "%";
     document.getElementById("confidenceValue").innerText =
         (row.confidence || 50) + "/100";
-    document.getElementById("historyCount").innerText = "--";
+    document.getElementById("historyCount").innerText =
+        row.history_count != null ? row.history_count
+        : (row.history ? row.history.length : "--");
 
     const status = document.getElementById("liveStatus");
     const timer  = document.getElementById("marketTimer");
@@ -401,14 +398,15 @@ function renderMarketFromRow(row) {
     if (timer)  timer.innerText  = "∞";
     if (volume) volume.innerText = "0 SC";
 
-    const historyList = document.getElementById("historyList");
-    if (historyList) {
-        historyList.innerHTML =
-            '<div class="empty">Historical breakdown loads after settlement.</div>';
+    if (row.history && row.history.length > 0) {
+        renderHistory(row);
+        renderMiniChart(row);
+    } else {
+        const historyList = document.getElementById("historyList");
+        if (historyList) historyList.innerHTML = '<div class="empty">No historical data available.</div>';
+        const miniChart = document.getElementById("miniChart");
+        if (miniChart) miniChart.innerHTML = "";
     }
-
-    const miniChart = document.getElementById("miniChart");
-    if (miniChart) miniChart.innerHTML = "";
 
     document.getElementById("higherButton").disabled = !marketOpen;
     document.getElementById("lowerButton").disabled  = !marketOpen;
@@ -540,85 +538,50 @@ function updateLivePrices() {
 }
 
 // ---------------------------------------------------------------------------
-// Bot feed
+// Market activity feed
 // ---------------------------------------------------------------------------
 
-async function fetchBotActivity() {
-    if (currentMarketId === null) return;
+async function loadMarketActivity() {
+    const list = document.getElementById("activityFeedList");
+    if (!list || currentMarketId === null) return;
 
     try {
-        const response = await fetch(
-            `/api/markets/${currentMarketId}/bot-tick`,
-            { method: "POST" }
-        );
+        const resp = await fetch(`/api/markets/${currentMarketId}/positions`);
+        if (!resp.ok) throw new Error();
+        const data   = await resp.json();
+        const trades = (data.positions || []).slice(0, 8);
 
-        if (!response.ok) return;
-
-        const data = await response.json();
-        if (!data.bot_trades || data.bot_trades.length === 0) return;
-
-        const newHigherPrice = Math.round(Math.max(5, Math.min(95, data.current_price)));
-        const priceChanged   = newHigherPrice !== liveHigherPrice;
-
-        liveHigherPrice = newHigherPrice;
-        liveLowerPrice  = 100 - liveHigherPrice;
-
-        _appendBotTrades(data.bot_trades);
-
-        if (priceChanged) {
-            updateLivePrices();
-            updateTradeSummary();
+        if (trades.length === 0) {
+            list.innerText      = "No trades yet — be the first!";
+            list.dataset.empty  = "true";
+            return;
         }
 
-        const volume = document.getElementById("marketVolume");
-        if (volume) volume.innerText = Math.round(marketVolume) + " SC";
-    } catch (_) {}
-}
+        list.innerHTML     = "";
+        list.dataset.empty = "false";
 
-function renderBotFeed() {
-    const list = document.getElementById("botFeedList");
-    if (!list) return;
-
-    if (botTrades.length === 0) {
-        list.innerText = "Waiting for bot trades…";
-        return;
-    }
-
-    list.innerHTML = "";
-    botTrades.forEach(trade => {
-        const row = document.createElement("div");
-        row.className = "bot-trade";
-
-        const sideClass = trade.side === "higher" ? "bot-buy" : "bot-sell";
-
-        row.innerHTML = `
-            <span>
-                <strong>${trade.bot}</strong>
-                <span class="${sideClass}">${trade.side.toUpperCase()}</span>
-                <span style="color:#94a3b8;font-size:12px;">${trade.personality}</span>
-            </span>
-            <span>${trade.size} shares · H ${trade.higherPrice}¢</span>
-        `;
-        list.appendChild(row);
-    });
-}
-
-function _appendBotTrades(trades) {
-    trades.forEach(trade => {
-        marketVolume += trade.size;
-        botTrades.unshift({
-            bot:         trade.bot,
-            personality: trade.personality,
-            side:        (trade.direction || "higher").toLowerCase(),
-            size:        trade.size,
-            belief:      trade.belief,
-            higherPrice: liveHigherPrice,
-            lowerPrice:  liveLowerPrice,
-            time:        new Date().toLocaleTimeString(),
+        trades.forEach(pos => {
+            const row      = document.createElement("div");
+            row.className  = "trade-entry";
+            const dirClass = pos.side === "higher" ? "trade-buy" : "trade-sell";
+            const ts       = pos.created_at ? new Date(pos.created_at).toLocaleTimeString() : "";
+            row.innerHTML  = `
+                <span>
+                    <span class="${dirClass}">${pos.side.toUpperCase()}</span>
+                    <span style="color:#94a3b8;font-size:12px;">${Number(pos.stake).toFixed(0)} SC</span>
+                </span>
+                <span>${Number(pos.price_cents).toFixed(0)}¢ · ${ts}</span>
+            `;
+            list.appendChild(row);
         });
-    });
-    botTrades = botTrades.slice(0, 8);
-    renderBotFeed();
+
+        marketVolume = trades.reduce((sum, p) => sum + Number(p.stake), 0);
+        const vol = document.getElementById("marketVolume");
+        if (vol) vol.innerText = Math.round(marketVolume) + " SC";
+    } catch (_) {
+        list.innerText     = "No trades yet — be the first!";
+        list.dataset.empty = "true";
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -678,8 +641,6 @@ async function placeTrade() {
         const newHigherPrice = Math.round(Math.max(5, Math.min(95, data.new_price)));
         liveHigherPrice = newHigherPrice;
         liveLowerPrice  = 100 - liveHigherPrice;
-
-        _appendBotTrades(data.bot_trades || []);
 
         const priceCents = selectedSide === "higher" ? liveHigherPrice : liveLowerPrice;
         const pos        = data.position || {};
@@ -835,10 +796,6 @@ function renderPositions() {
 // ---------------------------------------------------------------------------
 
 function backToSetup() {
-    if (botInterval !== null) {
-        clearInterval(botInterval);
-        botInterval = null;
-    }
     stopSSEFeed();
     stopChartLoop();
 
