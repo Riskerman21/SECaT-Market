@@ -866,24 +866,6 @@ function backToSetup() {
 }
 
 // ---------------------------------------------------------------------------
-// Resets
-// ---------------------------------------------------------------------------
-
-function resetPortfolio() {
-    if (!confirm("Reset all saved bets? This will not refund SECaT Coins.")) return;
-
-    positions    = [];
-    selectedSide = null;
-    renderPositions();
-    resetSelectionUI();
-}
-
-function resetWalletForTesting() {
-    if (!confirm("Reset wallet to 500 SC?")) return;
-    setWalletBalance(STARTING_BALANCE);
-}
-
-// ---------------------------------------------------------------------------
 // Auth hook — re-render guest overlay whenever auth state changes
 // ---------------------------------------------------------------------------
 
