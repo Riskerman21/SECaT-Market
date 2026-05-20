@@ -821,6 +821,100 @@ input {
     margin-bottom:20px;
 }
 
+/* ── Market controls bar ─────────────────────────────────────── */
+.market-controls {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:14px;
+    flex-wrap:wrap;
+}
+
+.market-search-wrap {
+    position:relative;
+    flex:1;
+    min-width:180px;
+}
+
+.market-search-icon {
+    position:absolute;
+    left:12px;
+    top:50%;
+    transform:translateY(-50%);
+    font-size:13px;
+    pointer-events:none;
+    opacity:.6;
+}
+
+.market-search {
+    width:100%;
+    padding:10px 14px 10px 34px;
+    border-radius:14px;
+    border:1px solid rgba(148,163,184,.22);
+    background:rgba(2,6,23,.56);
+    color:white;
+    font-size:14px;
+    outline:none;
+    box-sizing:border-box;
+    transition:border-color .15s;
+}
+
+.market-search::placeholder { color:var(--muted); }
+.market-search:focus        { border-color:rgba(148,163,184,.45); }
+
+.market-filter-pills {
+    display:flex;
+    gap:6px;
+    flex-shrink:0;
+}
+
+.filter-pill {
+    padding:8px 16px;
+    border-radius:999px;
+    border:1px solid rgba(148,163,184,.22);
+    background:rgba(2,6,23,.56);
+    color:var(--muted);
+    font-size:13px;
+    font-weight:800;
+    cursor:pointer;
+    transition:background .15s, color .15s, border-color .15s;
+    white-space:nowrap;
+}
+
+.filter-pill:hover {
+    border-color:rgba(148,163,184,.4);
+    color:#e2e8f0;
+}
+
+.filter-pill.active {
+    background:rgba(139,92,246,.22);
+    border-color:rgba(139,92,246,.45);
+    color:#c4b5fd;
+}
+
+.market-sort {
+    padding:10px 14px;
+    border-radius:14px;
+    border:1px solid rgba(148,163,184,.22);
+    background:rgba(2,6,23,.56);
+    color:white;
+    font-size:13px;
+    font-weight:800;
+    cursor:pointer;
+    outline:none;
+    flex-shrink:0;
+}
+
+.market-count {
+    font-size:12px;
+    font-weight:800;
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:.07em;
+    margin-bottom:12px;
+}
+/* ──────────────────────────────────────────────────────────────── */
+
 .market-grid {
     display:grid;
     grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));

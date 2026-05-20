@@ -28,6 +28,26 @@
                         </div>
                     </div>
                 </div>
+                <div class="market-controls">
+                    <div class="market-search-wrap">
+                        <span class="market-search-icon">&#x1F50D;</span>
+                        <input id="marketSearch" class="market-search" type="text"
+                               placeholder="Search course or question…"
+                               oninput="applyFiltersAndSort()">
+                    </div>
+                    <div class="market-filter-pills">
+                        <button class="filter-pill active" data-status="all"      onclick="setStatusFilter(this)">All</button>
+                        <button class="filter-pill"        data-status="open"     onclick="setStatusFilter(this)">Open</button>
+                        <button class="filter-pill"        data-status="resolved" onclick="setStatusFilter(this)">Resolved</button>
+                    </div>
+                    <select id="marketSort" class="market-sort" onchange="applyFiltersAndSort()">
+                        <option value="newest">Sort: Newest</option>
+                        <option value="course_az">Sort: Course A–Z</option>
+                        <option value="price_high">Sort: Price High → Low</option>
+                        <option value="price_low">Sort: Price Low → High</option>
+                    </select>
+                </div>
+                <div id="marketCount" class="market-count"></div>
                 <div id="marketGrid" class="market-grid"></div>
             </div>
 

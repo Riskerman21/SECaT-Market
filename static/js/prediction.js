@@ -272,6 +272,8 @@ function addPricePoint(price) {
 // Market browser
 // ---------------------------------------------------------------------------
 
+let allMarkets = [];
+
 async function loadMarkets() {
     const grid = document.getElementById("marketGrid");
     if (!grid) return;
@@ -281,45 +283,95 @@ async function loadMarkets() {
     try {
         const resp = await fetch("/api/markets");
         if (!resp.ok) throw new Error("API failed");
-        const data    = await resp.json();
-        const markets = data.markets || [];
+        const data = await resp.json();
+        allMarkets = data.markets || [];
 
-        if (markets.length === 0) {
+        if (allMarkets.length === 0) {
             grid.innerHTML = '<div class="market-empty">No markets available yet.</div>';
             return;
         }
 
-        grid.innerHTML = "";
-
-        markets.forEach(market => {
-            const card = document.createElement("div");
-            card.className = "market-card";
-            if (market.status !== "open") card.classList.add("market-resolved");
-
-            const price      = Math.round(Math.max(5, Math.min(95, market.current_price)));
-            const priceClass = price >= 50 ? "price-higher" : "price-lower";
-            const statusText = market.status === "open" ? "Open" : "Resolved";
-
-            card.innerHTML = `
-                <div class="market-card-course">${market.course_code}</div>
-                <div class="market-card-question">${market.question_name || "Market question"}</div>
-                <div class="market-card-footer">
-                    <span class="${priceClass}">${price}¢</span>
-                    <span class="market-card-status">${statusText}</span>
-                </div>
-                <div class="market-card-upcoming">Sem ${market.upcoming_sem} · ${market.upcoming_year}</div>
-            `;
-
-            if (market.status === "open") {
-                card.onclick = () => openMarket(market.id);
-                card.style.cursor = "pointer";
-            }
-
-            grid.appendChild(card);
-        });
+        applyFiltersAndSort();
     } catch (_) {
         grid.innerHTML = '<div class="market-empty">Could not load markets.</div>';
     }
+}
+
+function applyFiltersAndSort() {
+    const query  = (document.getElementById("marketSearch")?.value || "").toLowerCase().trim();
+    const status = document.querySelector(".filter-pill.active")?.dataset.status || "all";
+    const sort   = document.getElementById("marketSort")?.value || "newest";
+
+    let markets = allMarkets.filter(m => {
+        if (status !== "all" && m.status !== status) return false;
+        if (!query) return true;
+        return m.course_code.toLowerCase().includes(query) ||
+               (m.question_name || "").toLowerCase().includes(query);
+    });
+
+    if (sort === "course_az") {
+        markets = markets.slice().sort((a, b) => a.course_code.localeCompare(b.course_code));
+    } else if (sort === "price_high") {
+        markets = markets.slice().sort((a, b) => b.current_price - a.current_price);
+    } else if (sort === "price_low") {
+        markets = markets.slice().sort((a, b) => a.current_price - b.current_price);
+    }
+    // "newest" keeps the API order (DESC created_at)
+
+    renderMarkets(markets);
+}
+
+function setStatusFilter(btn) {
+    document.querySelectorAll(".filter-pill").forEach(p => p.classList.remove("active"));
+    btn.classList.add("active");
+    applyFiltersAndSort();
+}
+
+function renderMarkets(markets) {
+    const grid  = document.getElementById("marketGrid");
+    const count = document.getElementById("marketCount");
+    if (!grid) return;
+
+    const total = allMarkets.length;
+    if (count) {
+        count.textContent = markets.length === total
+            ? `${total} market${total !== 1 ? "s" : ""}`
+            : `${markets.length} of ${total} markets`;
+    }
+
+    if (markets.length === 0) {
+        grid.innerHTML = '<div class="market-empty">No markets match your search.</div>';
+        return;
+    }
+
+    grid.innerHTML = "";
+
+    markets.forEach(market => {
+        const card = document.createElement("div");
+        card.className = "market-card";
+        if (market.status !== "open") card.classList.add("market-resolved");
+
+        const price      = Math.round(Math.max(5, Math.min(95, market.current_price)));
+        const priceClass = price >= 50 ? "price-higher" : "price-lower";
+        const statusText = market.status === "open" ? "Open" : "Resolved";
+
+        card.innerHTML = `
+            <div class="market-card-course">${market.course_code}</div>
+            <div class="market-card-question">${market.question_name || "Market question"}</div>
+            <div class="market-card-footer">
+                <span class="${priceClass}">${price}¢</span>
+                <span class="market-card-status">${statusText}</span>
+            </div>
+            <div class="market-card-upcoming">Sem ${market.upcoming_sem} · ${market.upcoming_year}</div>
+        `;
+
+        if (market.status === "open") {
+            card.onclick = () => openMarket(market.id);
+            card.style.cursor = "pointer";
+        }
+
+        grid.appendChild(card);
+    });
 }
 
 async function openMarket(marketId) {
